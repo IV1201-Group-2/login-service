@@ -7,8 +7,8 @@ import "github.com/golang-jwt/jwt/v5"
 type Role int
 
 const (
-	RoleApplicant Role = iota
-	RoleRecruiter
+	RoleRecruiter Role = iota + 1
+	RoleApplicant
 )
 
 type User struct {
