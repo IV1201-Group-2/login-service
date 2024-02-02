@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"time"
 
 	"github.com/IV1201-Group-2/login-service/model"
@@ -17,12 +18,24 @@ const AuthExpiryPeriod = time.Hour
 // A microservice or mobile app will prefer to set the Authorization header automatically
 const AuthLookupMethods = "header:Authorization:Bearer,query:token"
 
+func errorHandlerFunc(c echo.Context, err error) error {
+	// Allow requests without a token set
+	if errors.Is(err, echojwt.ErrJWTMissing) {
+		return nil
+	}
+
+	return nil
+}
+
 func newClaimsFunc(c echo.Context) jwt.Claims {
 	return model.UserClaims{}
 }
 
 // Use the mock signing key
 var MockAuthConfig = echojwt.Config{
+	ErrorHandler:           errorHandlerFunc,
+	ContinueOnIgnoredError: true,
+
 	NewClaimsFunc: newClaimsFunc,
 	SigningKey:    model.MockJWTSigningKey,
 	TokenLookup:   AuthLookupMethods,
