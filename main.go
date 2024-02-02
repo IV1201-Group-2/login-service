@@ -11,18 +11,18 @@ import (
 )
 
 func main() {
-	server := echo.New()
+	srv := echo.New()
 
 	// Universal middleware for all routes
-	server.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+	srv.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "[${remote_ip}] ${protocol} ${method} ${uri} in ${latency_human} (${status})\n",
 	}))
-	server.Use(middleware.Recover())
+	srv.Use(middleware.Recover())
 
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
 		log.Fatal("$PORT must be set")
 	}
 
-	server.Logger.Fatal(server.Start(fmt.Sprintf(":%d", port)))
+	srv.Logger.Fatal(srv.Start(fmt.Sprintf(":%d", port)))
 }
