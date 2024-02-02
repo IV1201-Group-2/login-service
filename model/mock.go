@@ -6,7 +6,7 @@ var MockApplicant = User{
 
 	Name:           "Mock",
 	Surname:        "Applicant",
-	PersonalNumber: "200001011111",
+	PersonalNumber: "20000101-1111",
 
 	Role: RoleApplicant,
 }
@@ -17,7 +17,7 @@ var MockRecruiter = User{
 
 	Name:           "Mock",
 	Surname:        "Recruiter",
-	PersonalNumber: "200001019999",
+	PersonalNumber: "20000101-9999",
 
 	Role: RoleRecruiter,
 }
