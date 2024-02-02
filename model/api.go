@@ -15,6 +15,10 @@ type LoginSuccessResponse struct {
 }
 
 // Generic error response
+type ErrorDetails struct {
+	Message string `json:"message"`
+}
 type ErrorResponse struct {
-	Error string `json:"error"`
+	Error   string        `json:"error"`
+	Details *ErrorDetails `json:"details,omitempty"`
 }
