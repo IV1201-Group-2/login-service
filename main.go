@@ -8,6 +8,8 @@ import (
 	"strconv"
 
 	"github.com/IV1201-Group-2/login-service/model"
+
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -34,6 +36,18 @@ func customErrorHandler(err error, c echo.Context) {
 	}
 }
 
+type CustomValidator struct {
+	validator *validator.Validate
+}
+
+func (cv *CustomValidator) Validate(i interface{}) error {
+	if err := cv.validator.Struct(i); err != nil {
+		return echo.NewHTTPError(400, fmt.Sprintf("validation failed: %s", err.Error()))
+	}
+
+	return nil
+}
+
 func main() {
 	srv := echo.New()
 
@@ -42,7 +56,9 @@ func main() {
 		Format: "[${remote_ip}] ${protocol} ${method} ${uri} in ${latency_human} (${status})\n",
 	}))
 	srv.Use(middleware.Recover())
+
 	srv.HTTPErrorHandler = customErrorHandler
+	srv.Validator = &CustomValidator{validator: validator.New()}
 
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
