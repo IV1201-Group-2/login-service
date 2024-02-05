@@ -2,8 +2,6 @@ package model
 
 import "github.com/golang-jwt/jwt/v5"
 
-// TODO: make sure this syncs up with the database
-
 type Role int
 
 const (
