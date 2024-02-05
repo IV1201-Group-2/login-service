@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"github.com/IV1201-Group-2/login-service/model"
@@ -25,6 +26,15 @@ func errorHandlerFunc(c echo.Context, err error) error {
 
 func newClaimsFunc(c echo.Context) jwt.Claims {
 	return &model.UserClaims{}
+}
+
+// Use the production signing key
+var ProdAuthConfig = echojwt.Config{
+	ErrorHandler:           errorHandlerFunc,
+	ContinueOnIgnoredError: true,
+
+	NewClaimsFunc: newClaimsFunc,
+	SigningKey:    os.Getenv("JWT_SECRET"),
 }
 
 // Use the mock signing key
