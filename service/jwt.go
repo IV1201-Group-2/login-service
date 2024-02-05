@@ -14,10 +14,6 @@ import (
 // Expire tokens after one hour for security
 const AuthExpiryPeriod = time.Hour
 
-// The frontend will prefer to use query strings
-// A microservice or mobile app will prefer to set the Authorization header automatically
-const AuthLookupMethods = "header:Authorization:Bearer,query:token"
-
 func errorHandlerFunc(c echo.Context, err error) error {
 	// Allow requests without a token set
 	if errors.Is(err, echojwt.ErrJWTMissing) {
@@ -38,7 +34,6 @@ var MockAuthConfig = echojwt.Config{
 
 	NewClaimsFunc: newClaimsFunc,
 	SigningKey:    model.MockJWTSigningKey,
-	TokenLookup:   AuthLookupMethods,
 }
 
 func SignTokenForUser(user model.User, config *echojwt.Config) (string, error) {
