@@ -3,14 +3,13 @@ package service
 import (
 	"errors"
 
+	"github.com/IV1201-Group-2/login-service/database"
 	"github.com/IV1201-Group-2/login-service/model"
 
 	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )
-
-var mockAllowedUsers = []model.User{model.MockApplicant, model.MockRecruiter}
 
 type loginParams struct {
 	Identity string     `form:"identity" validate:"required"`
@@ -32,22 +31,19 @@ func MockLogin(c echo.Context) error {
 		return c.JSON(400, model.ErrorResponse{Error: model.APIErrMissingParameters})
 	}
 
-	// Check if user is in list of mock users
-	for _, user := range mockAllowedUsers {
-		if user.Role == params.Role && (user.Username == params.Identity || user.Email == params.Identity) {
-			// Check that password matches
-			if user.Password != params.Password {
-				return c.JSON(401, model.ErrorResponse{Error: model.APIErrWrongPassword})
-			}
+	if user, _ := database.MockQueryUser(params.Identity, params.Role); user != nil {
+		// Check that password matches
+		if user.Password != params.Password {
+			return c.JSON(401, model.ErrorResponse{Error: model.APIErrWrongPassword})
+		}
 
-			// Create a new token valid for auth expiry period
-			if token, err := SignTokenForUser(user, &MockAuthConfig); err == nil {
-				return c.JSON(200, model.LoginSuccessResponse{Token: token})
-			} else {
-				// Something went wrong when signing the token
-				c.Logger().Errorf("/login: %v", err)
-				return c.JSON(500, model.ErrorResponse{Error: model.APIErrUnknown})
-			}
+		// Create a new token valid for auth expiry period
+		if token, err := SignTokenForUser(*user, &MockAuthConfig); err == nil {
+			return c.JSON(200, model.LoginSuccessResponse{Token: token})
+		} else {
+			// Something went wrong when signing the token
+			c.Logger().Errorf("/login: %v", err)
+			return c.JSON(500, model.ErrorResponse{Error: model.APIErrUnknown})
 		}
 	}
 
