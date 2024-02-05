@@ -24,11 +24,11 @@ func errorHandlerFunc(c echo.Context, err error) error {
 		return nil
 	}
 
-	return nil
+	return err
 }
 
 func newClaimsFunc(c echo.Context) jwt.Claims {
-	return model.UserClaims{}
+	return &model.UserClaims{}
 }
 
 // Use the mock signing key

@@ -3,6 +3,7 @@ package model
 var MockApplicant = User{
 	Username: "mockuser_applicant",
 	Email:    "mockuser-applicant@example.com",
+	Password: "password",
 
 	Name:           "Mock",
 	Surname:        "Applicant",
@@ -14,6 +15,7 @@ var MockApplicant = User{
 var MockRecruiter = User{
 	Username: "mockuser_recruiter",
 	Email:    "mockuser-recruiter@example.com",
+	Password: "password",
 
 	Name:           "Mock",
 	Surname:        "Recruiter",

@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/IV1201-Group-2/login-service/model"
+	"github.com/IV1201-Group-2/login-service/service"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -65,5 +66,6 @@ func main() {
 		log.Fatal("$PORT must be set")
 	}
 
+	service.RegisterMockRoutes(srv)
 	srv.Logger.Fatal(srv.Start(fmt.Sprintf(":%d", port)))
 }
