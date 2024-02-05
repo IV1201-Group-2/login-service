@@ -12,11 +12,10 @@ import (
 
 var mockAllowedUsers = []model.User{model.MockApplicant, model.MockRecruiter}
 
-// TODO: Discuss query params for POST
 type loginParams struct {
-	Identity string     `json:"identity" validate:"required"`
-	Password string     `json:"password" validate:"required"`
-	Role     model.Role `json:"role" validate:"required"`
+	Identity string     `form:"identity" validate:"required"`
+	Password string     `form:"password" validate:"required"`
+	Role     model.Role `form:"role" validate:"required"`
 }
 
 // Mock implementation of login API
