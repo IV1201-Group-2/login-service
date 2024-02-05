@@ -10,19 +10,14 @@ const (
 )
 
 type User struct {
-	ID int `json:"id"`
+	ID   int  `json:"id"`
+	Role Role `json:"role"`
 
 	Username string `json:"username"`
 	Email    string `json:"email"`
 
 	// Omit from JSON response
 	Password string `json:"-"`
-
-	Name           string `json:"name"`
-	Surname        string `json:"surname"`
-	PersonalNumber string `json:"pnr"`
-
-	Role Role `json:"role"`
 }
 
 type UserClaims struct {

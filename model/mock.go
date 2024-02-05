@@ -1,27 +1,21 @@
 package model
 
 var MockApplicant = User{
+	ID:   0,
+	Role: RoleApplicant,
+
 	Username: "mockuser_applicant",
 	Email:    "mockuser-applicant@example.com",
 	Password: "password",
-
-	Name:           "Mock",
-	Surname:        "Applicant",
-	PersonalNumber: "20000101-1111",
-
-	Role: RoleApplicant,
 }
 
 var MockRecruiter = User{
+	ID:   1,
+	Role: RoleRecruiter,
+
 	Username: "mockuser_recruiter",
 	Email:    "mockuser-recruiter@example.com",
 	Password: "password",
-
-	Name:           "Mock",
-	Surname:        "Recruiter",
-	PersonalNumber: "20000101-9999",
-
-	Role: RoleRecruiter,
 }
 
 var MockJWTSigningKey = []byte("Mock secret")
