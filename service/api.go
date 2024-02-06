@@ -4,6 +4,7 @@ package service
 
 import (
 	"errors"
+	"log"
 
 	"github.com/IV1201-Group-2/login-service/database"
 	"github.com/IV1201-Group-2/login-service/model"
@@ -20,7 +21,7 @@ type loginParams struct {
 }
 
 // Login route handler.
-func Login(c echo.Context, db database.Connection) error {
+func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) error {
 	// Check if user incorrectly provided a JWT token
 	_, ok := c.Get("user").(*jwt.Token)
 	if ok {
@@ -54,7 +55,7 @@ func Login(c echo.Context, db database.Connection) error {
 		}
 
 		// Create a new token valid for auth expiry period
-		if token, err := SignTokenForUser(*user, &AuthConfig); err == nil {
+		if token, err := SignTokenForUser(*user, authConfig); err == nil {
 			return c.JSON(200, model.SuccessResponse{Token: token})
 		} else {
 			// Something went wrong when signing the token
@@ -66,8 +67,13 @@ func Login(c echo.Context, db database.Connection) error {
 
 // Register all REST API routes.
 func RegisterRoutes(srv *echo.Echo, db database.Connection) {
-	srv.Use(echojwt.WithConfig(AuthConfig))
+	authConfig, err := NewAuthConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	srv.Use(echojwt.WithConfig(*authConfig))
 	srv.POST("/api/login", func(c echo.Context) error {
-		return Login(c, db)
+		return Login(c, db, authConfig)
 	})
 }
