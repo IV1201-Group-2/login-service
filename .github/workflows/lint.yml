@@ -1,0 +1,27 @@
+name: lint
+
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  # https://github.com/golangci/golangci-lint-action
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # setup-go will automatically cache go.sum
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.21.x"
+      - name: Install dependencies
+        run: go get .
+      - name: Build
+        run: go build -v ./...
+      - name: Run all tests
+        run: go test ./...
