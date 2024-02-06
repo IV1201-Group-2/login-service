@@ -55,7 +55,7 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 		}
 
 		// Create a new token valid for auth expiry period
-		if token, err := SignTokenForUser(*user, authConfig); err == nil {
+		if token, err := SignTokenForUser(*user, authConfig.SigningKey); err == nil {
 			return c.JSON(200, model.SuccessResponse{Token: token})
 		} else {
 			// Something went wrong when signing the token

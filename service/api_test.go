@@ -151,8 +151,7 @@ func TestLoginWrongPassword(t *testing.T) {
 
 // Tests that the server returns ALREADY_LOGGED_IN when a JWT token is set.
 func TestAlreadyLoggedIn(t *testing.T) {
-	authConfig, _ := NewAuthConfig()
-	testToken, _ := SignTokenForUser(model.MockApplicant, authConfig)
+	testToken, _ := SignTokenForUser(model.MockApplicant, []byte("mocksecret"))
 
 	res := testRequest("/api/login", map[string]string{
 		"identity": model.MockApplicant.Email,

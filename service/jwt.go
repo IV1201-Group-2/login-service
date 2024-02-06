@@ -49,7 +49,7 @@ func NewAuthConfig() (*echojwt.Config, error) {
 
 // Signs a token for the specified user with the specified authentication config.
 // This function returns the encoded token in plaintext or an error if signing failed
-func SignTokenForUser(user model.User, config *echojwt.Config) (string, error) {
+func SignTokenForUser(user model.User, signingKey interface{}) (string, error) {
 	claims := model.UserClaims{
 		User: user,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -59,7 +59,7 @@ func SignTokenForUser(user model.User, config *echojwt.Config) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	encodedToken, err := token.SignedString(config.SigningKey)
+	encodedToken, err := token.SignedString(signingKey)
 
 	if err != nil {
 		return "", err
