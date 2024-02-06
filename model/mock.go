@@ -5,7 +5,7 @@ var MockApplicant = User{
 	ID:   0,
 	Role: RoleApplicant,
 
-	Username: "mockuser_applicant",
+	Username: "",
 	Email:    "mockuser-applicant@example.com",
 	Password: "password",
 }
@@ -16,6 +16,6 @@ var MockRecruiter = User{
 	Role: RoleRecruiter,
 
 	Username: "mockuser_recruiter",
-	Email:    "mockuser-recruiter@example.com",
+	Email:    "",
 	Password: "password",
 }
