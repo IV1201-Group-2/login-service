@@ -18,7 +18,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// Custom error handler conformant with shared API rules
+// Custom error handler conformant with shared API rules.
 // https://echo.labstack.com/docs/error-handling
 func customErrorHandler(err error, c echo.Context) {
 	var details *model.ErrorDetails
@@ -40,11 +40,12 @@ func customErrorHandler(err error, c echo.Context) {
 	}
 }
 
-type CustomValidator struct {
+type customValidator struct {
 	validator *validator.Validate
 }
 
-func (cv *CustomValidator) Validate(i interface{}) error {
+// Validates user data using go-playground/validator.
+func (cv *customValidator) Validate(i interface{}) error {
 	if err := cv.validator.Struct(i); err != nil {
 		return echo.NewHTTPError(400, fmt.Sprintf("validation failed: %s", err.Error()))
 	}
@@ -61,14 +62,13 @@ func main() {
 
 	srv := echo.New()
 
-	// Universal middleware for all routes
 	srv.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "[${remote_ip}] ${protocol} ${method} ${uri} in ${latency_human} (${status})\n",
 	}))
 	srv.Use(middleware.Recover())
 
 	srv.HTTPErrorHandler = customErrorHandler
-	srv.Validator = &CustomValidator{validator: validator.New()}
+	srv.Validator = &customValidator{validator: validator.New()}
 
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {

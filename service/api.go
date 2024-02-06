@@ -1,3 +1,5 @@
+// The package service contains the implementation of the microservice.
+// This includes handling the login process and signing JWT tokens.
 package service
 
 import (
@@ -17,7 +19,7 @@ type loginParams struct {
 	Role     model.Role `form:"role" validate:"required"`
 }
 
-// Login route handler
+// Login route handler.
 func Login(c echo.Context, db database.Connection) error {
 	// Check if user incorrectly provided a JWT token
 	_, ok := c.Get("user").(*jwt.Token)
@@ -62,6 +64,7 @@ func Login(c echo.Context, db database.Connection) error {
 	}
 }
 
+// Register all REST API routes.
 func RegisterRoutes(srv *echo.Echo, db database.Connection) {
 	srv.Use(echojwt.WithConfig(AuthConfig))
 	srv.POST("/api/login", func(c echo.Context) error {

@@ -12,7 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// Expire tokens after one hour for security
+// Expire tokens after one hour for security.
 const AuthExpiryPeriod = time.Hour
 
 func errorHandlerFunc(c echo.Context, err error) error {
@@ -28,7 +28,7 @@ func newClaimsFunc(c echo.Context) jwt.Claims {
 	return &model.UserClaims{}
 }
 
-// JWT signing key and error handler
+// JWT signing key and error handler.
 var AuthConfig = echojwt.Config{
 	ErrorHandler:           errorHandlerFunc,
 	ContinueOnIgnoredError: true,
@@ -37,6 +37,8 @@ var AuthConfig = echojwt.Config{
 	SigningKey:    []byte(os.Getenv("JWT_SECRET")),
 }
 
+// Signs a token for the specified user with the specified authentication config.
+// This function returns the encoded token in plaintext or an error if signing failed
 func SignTokenForUser(user model.User, config *echojwt.Config) (string, error) {
 	claims := model.UserClaims{
 		User: user,
