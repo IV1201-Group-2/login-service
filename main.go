@@ -81,6 +81,7 @@ func main() {
 	} else if err != nil {
 		log.Fatalf("Database error: %v", err)
 	}
+	defer db.Close()
 
 	service.RegisterRoutes(srv, db)
 	srv.Logger.Fatal(srv.Start(fmt.Sprintf(":%d", port)))
