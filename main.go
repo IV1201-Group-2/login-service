@@ -13,6 +13,8 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	"github.com/joho/godotenv"
 )
 
 // Custom error handler conformant with shared API rules
@@ -50,6 +52,12 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 }
 
 func main() {
+	if os.Getenv("APP_ENV") == "development" {
+		godotenv.Load(".env.development")
+	} else {
+		godotenv.Load(".env")
+	}
+
 	srv := echo.New()
 
 	// Universal middleware for all routes
