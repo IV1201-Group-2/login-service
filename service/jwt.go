@@ -34,7 +34,7 @@ var AuthConfig = echojwt.Config{
 	ContinueOnIgnoredError: true,
 
 	NewClaimsFunc: newClaimsFunc,
-	SigningKey:    os.Getenv("JWT_SECRET"),
+	SigningKey:    []byte(os.Getenv("JWT_SECRET")),
 }
 
 func SignTokenForUser(user model.User, config *echojwt.Config) (string, error) {

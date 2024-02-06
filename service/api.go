@@ -36,11 +36,17 @@ func Login(c echo.Context, db database.Connection) error {
 			return c.JSON(401, model.ErrorResponse{Error: model.APIErrWrongIdentity})
 		} else {
 			// Something went wrong, DB down?
-			c.Logger().Errorf("/login: %v", err)
+			c.Logger().Errorf("/api/login QueryUser: %v", err)
 			return c.JSON(500, model.ErrorResponse{Error: model.APIErrUnknown})
 		}
 	} else {
+		// TODO: User should be sent an email
+		if user.Password == "" {
+			return c.JSON(404, model.ErrorResponse{Error: model.APIErrMissingPassword})
+		}
+
 		// Check that password matches
+		// TODO: Hashing algorithm
 		if user.Password != params.Password {
 			return c.JSON(401, model.ErrorResponse{Error: model.APIErrWrongPassword})
 		}
@@ -50,7 +56,7 @@ func Login(c echo.Context, db database.Connection) error {
 			return c.JSON(200, model.SuccessResponse{Token: token})
 		} else {
 			// Something went wrong when signing the token
-			c.Logger().Errorf("/login: %v", err)
+			c.Logger().Errorf("/api/login SignTokenForUser: %v", err)
 			return c.JSON(500, model.ErrorResponse{Error: model.APIErrUnknown})
 		}
 	}

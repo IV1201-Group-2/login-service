@@ -1,8 +1,10 @@
 package model
 
 const (
-	APIErrUnknown           = "UNKNOWN"
+	APIErrUnknown = "UNKNOWN"
+
 	APIErrMissingParameters = "MISSING_PARAMETERS"
+	APIErrMissingPassword   = "MISSING_PASSWORD"
 
 	APIErrWrongIdentity = "WRONG_IDENTITY"
 	APIErrWrongPassword = "WRONG_PASSWORD"
