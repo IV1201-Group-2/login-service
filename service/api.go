@@ -17,8 +17,8 @@ type loginParams struct {
 	Role     model.Role `form:"role" validate:"required"`
 }
 
-// Mock implementation of login API
-func MockLogin(c echo.Context) error {
+// Login route handler
+func Login(c echo.Context, db database.Connection) error {
 	// Check if user incorrectly provided a JWT token
 	_, ok := c.Get("user").(*jwt.Token)
 	if ok {
@@ -31,27 +31,34 @@ func MockLogin(c echo.Context) error {
 		return c.JSON(400, model.ErrorResponse{Error: model.APIErrMissingParameters})
 	}
 
-	if user, _ := database.MockQueryUser(params.Identity, params.Role); user != nil {
+	if user, err := db.QueryUser(params.Identity, params.Role); err != nil {
+		if err == database.ErrUserNotFound {
+			return c.JSON(401, model.ErrorResponse{Error: model.APIErrWrongIdentity})
+		} else {
+			// Something went wrong, DB down?
+			c.Logger().Errorf("/login: %v", err)
+			return c.JSON(500, model.ErrorResponse{Error: model.APIErrUnknown})
+		}
+	} else {
 		// Check that password matches
 		if user.Password != params.Password {
 			return c.JSON(401, model.ErrorResponse{Error: model.APIErrWrongPassword})
 		}
 
 		// Create a new token valid for auth expiry period
-		if token, err := SignTokenForUser(*user, &MockAuthConfig); err == nil {
-			return c.JSON(200, model.LoginSuccessResponse{Token: token})
+		if token, err := SignTokenForUser(*user, &AuthConfig); err == nil {
+			return c.JSON(200, model.SuccessResponse{Token: token})
 		} else {
 			// Something went wrong when signing the token
 			c.Logger().Errorf("/login: %v", err)
 			return c.JSON(500, model.ErrorResponse{Error: model.APIErrUnknown})
 		}
 	}
-
-	return c.JSON(401, model.ErrorResponse{Error: model.APIErrWrongIdentity})
 }
 
-func RegisterMockRoutes(srv *echo.Echo) {
-	srv.StdLogger.Println("Server is in mock mode")
-	srv.Use(echojwt.WithConfig(MockAuthConfig))
-	srv.POST("/login", MockLogin)
+func RegisterRoutes(srv *echo.Echo, db database.Connection) {
+	srv.Use(echojwt.WithConfig(AuthConfig))
+	srv.POST("/login", func(c echo.Context) error {
+		return Login(c, db)
+	})
 }

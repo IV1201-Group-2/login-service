@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/IV1201-Group-2/login-service/database"
 	"github.com/IV1201-Group-2/login-service/model"
 	"github.com/IV1201-Group-2/login-service/service"
 
@@ -74,6 +75,13 @@ func main() {
 		log.Fatal("$PORT must be set")
 	}
 
-	service.RegisterMockRoutes(srv)
+	db, err := database.Connect(os.Getenv("DATABASE_URL"))
+	if err == database.ErrConnectionMockMode {
+		log.Println("Server is in mock mode")
+	} else if err != nil {
+		log.Fatalf("Database error: %v", err)
+	}
+
+	service.RegisterRoutes(srv, db)
 	srv.Logger.Fatal(srv.Start(fmt.Sprintf(":%d", port)))
 }

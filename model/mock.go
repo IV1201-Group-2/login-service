@@ -17,5 +17,3 @@ var MockRecruiter = User{
 	Email:    "mockuser-recruiter@example.com",
 	Password: "password",
 }
-
-var MockJWTSigningKey = []byte("Mock secret")

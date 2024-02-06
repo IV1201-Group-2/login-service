@@ -10,11 +10,12 @@ const (
 	APIErrAlreadyLoggedIn = "ALREADY_LOGGED_IN"
 )
 
-type LoginSuccessResponse struct {
+// Specific success response for this API
+type SuccessResponse struct {
 	Token string `json:"token"`
 }
 
-// Generic error response
+// Shared error response for all APIs
 type ErrorDetails struct {
 	Message string `json:"message"`
 }
