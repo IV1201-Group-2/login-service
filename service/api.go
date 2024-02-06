@@ -58,7 +58,7 @@ func Login(c echo.Context, db database.Connection) error {
 
 func RegisterRoutes(srv *echo.Echo, db database.Connection) {
 	srv.Use(echojwt.WithConfig(AuthConfig))
-	srv.POST("/login", func(c echo.Context) error {
+	srv.POST("/api/login", func(c echo.Context) error {
 		return Login(c, db)
 	})
 }
