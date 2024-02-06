@@ -17,8 +17,10 @@ import (
 
 func main() {
 	if os.Getenv("APP_ENV") == "development" {
+		// nolint:errcheck
 		godotenv.Load(".env.development")
 	} else {
+		// nolint:errcheck
 		godotenv.Load(".env")
 	}
 
