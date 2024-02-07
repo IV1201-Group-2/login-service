@@ -50,7 +50,7 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 		return c.JSON(http.StatusNotFound, model.ErrorResponse{Error: model.APIErrMissingPassword})
 	}
 	// Check that password matches
-	if !model.ComparePassword(user.Password, params.Password) {
+	if !model.ComparePassword(params.Password, user.Password) {
 		return c.JSON(http.StatusUnauthorized, model.ErrorResponse{Error: model.APIErrWrongPassword})
 	}
 
