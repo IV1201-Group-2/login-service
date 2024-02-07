@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -8,17 +9,17 @@ import (
 
 	"github.com/IV1201-Group-2/login-service/database"
 	"github.com/IV1201-Group-2/login-service/service"
-
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
 	if os.Getenv("APP_ENV") == "development" {
+		//nolint:errcheck
 		godotenv.Load(".env.development")
 	} else {
+		//nolint:errcheck
 		godotenv.Load(".env")
 	}
 
@@ -38,7 +39,7 @@ func main() {
 	}
 
 	db, err := database.Connect(os.Getenv("DATABASE_URL"))
-	if err == database.ErrConnectionMockMode {
+	if errors.Is(err, database.ErrConnectionMockMode) {
 		log.Println("Server is in mock mode")
 	} else if err != nil {
 		log.Fatalf("Database error: %v", err)
