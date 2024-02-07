@@ -25,7 +25,7 @@ var ErrUserNotFound = errors.New("user not found in db")
 // The connection should be closed when it's no longer being used.
 type Connection interface {
 	// Queries the database for a user with a specific identity and role.
-	QueryUser(identity string, role model.Role) (*model.User, error)
+	QueryUser(identity string) (*model.User, error)
 	// Closes the database connection.
 	Close() error
 }
@@ -56,15 +56,15 @@ func Connect(databaseURL string) (Connection, error) {
 	return sqlConnection{db: db}, nil
 }
 
-const userQuery = "SELECT person_id, username, email, password FROM person WHERE (username = $1 OR email = $1) AND role_id = $2"
+const userQuery = "SELECT person_id, username, email, password, role_id FROM person WHERE (username = $1 OR email = $1)"
 
 // SQL implementation of database query.
-func (c sqlConnection) QueryUser(identity string, role model.Role) (*model.User, error) {
+func (c sqlConnection) QueryUser(identity string) (*model.User, error) {
 	var name, email, password sql.NullString
-	user := &model.User{Role: role}
+	user := &model.User{}
 
-	row := c.db.QueryRow(userQuery, identity, role)
-	err := row.Scan(&user.ID, &name, &email, &password)
+	row := c.db.QueryRow(userQuery, identity)
+	err := row.Scan(&user.ID, &name, &email, &password, &user.Role)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrUserNotFound
@@ -72,15 +72,9 @@ func (c sqlConnection) QueryUser(identity string, role model.Role) (*model.User,
 		return nil, err
 	}
 
-	if name.Valid {
-		user.Username = name.String
-	}
-	if email.Valid {
-		user.Email = email.String
-	}
-	if password.Valid {
-		user.Password = password.String
-	}
+	user.Username = name.String
+	user.Email = email.String
+	user.Password = password.String
 
 	return user, nil
 }
@@ -89,10 +83,10 @@ func (c sqlConnection) Close() error {
 }
 
 // Mock implementation of database query.
-func (c mockConnection) QueryUser(identity string, role model.Role) (*model.User, error) {
+func (c mockConnection) QueryUser(identity string) (*model.User, error) {
 	var mockAllowedUsers = []model.User{model.MockApplicant, model.MockRecruiter}
 	for _, user := range mockAllowedUsers {
-		if (user.Username == identity || user.Email == identity) && user.Role == role {
+		if user.Username == identity || user.Email == identity {
 			return &user, nil
 		}
 	}

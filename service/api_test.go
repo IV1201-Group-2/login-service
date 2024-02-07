@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,7 +9,6 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -39,15 +39,27 @@ func mockKeyFunc(_ *jwt.Token) (interface{}, error) {
 	return []byte("mocksecret"), nil
 }
 
+var useJSON = os.Getenv("TEST_JSON") == "1"
+
 // Sends a request to mock server and returns response.
-func testRequest(path string, params map[string]string, headers map[string]string) *http.Response {
-	formData := url.Values{}
-	for k, v := range params {
-		formData.Set(k, v)
+func testRequest(t *testing.T, path string, params map[string]any, headers map[string]string) *http.Response {
+	t.Helper()
+
+	var req *http.Request
+	if useJSON {
+		json, err := json.Marshal(params)
+		require.NoError(t, err)
+		req = httptest.NewRequest(http.MethodPost, path, bytes.NewReader(json))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	} else {
+		formData := url.Values{}
+		for k, v := range params {
+			formData.Set(k, fmt.Sprintf("%v", v))
+		}
+		req = httptest.NewRequest(http.MethodPost, path, strings.NewReader(formData.Encode()))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
 	}
 
-	req := httptest.NewRequest(http.MethodPost, path, strings.NewReader(formData.Encode()))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
@@ -64,10 +76,10 @@ func testRequest(path string, params map[string]string, headers map[string]strin
 func TestLogin(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest("/api/login", map[string]string{
+	res := testRequest(t, "/api/login", map[string]any{
 		"identity": model.MockApplicant.Email,
 		"password": model.MockPassword,
-		"role":     strconv.Itoa(int(model.MockApplicant.Role)),
+		"role":     model.MockApplicant.Role,
 	}, map[string]string{})
 	defer res.Body.Close()
 
@@ -89,13 +101,13 @@ func TestLogin(t *testing.T) {
 	require.Equal(t, model.MockApplicant.Role, claims.Role)
 }
 
-// Tests that the server returns MISSING_PARAMETERS when API caller is missing parameters.
+// Tests that the server returns MISSING_PARAMETERS when API caller is missing required parameters.
 func TestMissingParameters(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest("/api/login", map[string]string{
+	res := testRequest(t, "/api/login", map[string]any{
 		"password": model.MockPassword,
-		"role":     strconv.Itoa(int(model.MockApplicant.Role)),
+		"role":     model.MockApplicant.Role,
 	}, map[string]string{})
 	defer res.Body.Close()
 
@@ -108,14 +120,27 @@ func TestMissingParameters(t *testing.T) {
 	require.Equal(t, "MISSING_PARAMETERS", obj.Error)
 }
 
+// Tests that the server does not return MISSING_PARAMETERS when API caller is missing optional parameters.
+func TestOptionalParameters(t *testing.T) {
+	t.Parallel()
+
+	res := testRequest(t, "/api/login", map[string]any{
+		"identity": model.MockApplicant.Email,
+		"password": model.MockPassword,
+	}, map[string]string{})
+	defer res.Body.Close()
+
+	require.Equal(t, http.StatusOK, res.StatusCode)
+}
+
 // Tests that the server returns WRONG_IDENTITY when user does not exist.
 func TestLoginMissingUser(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest("/api/login", map[string]string{
+	res := testRequest(t, "/api/login", map[string]any{
 		"identity": "doesnotexist@example.com",
 		"password": "password",
-		"role":     "1",
+		"role":     1,
 	}, map[string]string{})
 	defer res.Body.Close()
 
@@ -132,10 +157,10 @@ func TestLoginMissingUser(t *testing.T) {
 func TestLoginWrongRole(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest("/api/login", map[string]string{
+	res := testRequest(t, "/api/login", map[string]any{
 		"identity": model.MockApplicant.Email,
 		"password": model.MockPassword,
-		"role":     strconv.Itoa(int(model.RoleRecruiter)),
+		"role":     model.RoleRecruiter,
 	}, map[string]string{})
 	defer res.Body.Close()
 
@@ -152,10 +177,10 @@ func TestLoginWrongRole(t *testing.T) {
 func TestLoginWrongPassword(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest("/api/login", map[string]string{
+	res := testRequest(t, "/api/login", map[string]any{
 		"identity": model.MockApplicant.Email,
 		"password": "wrong",
-		"role":     strconv.Itoa(int(model.MockApplicant.Role)),
+		"role":     model.MockApplicant.Role,
 	}, map[string]string{})
 	defer res.Body.Close()
 
@@ -174,10 +199,10 @@ func TestAlreadyLoggedIn(t *testing.T) {
 
 	testToken, _ := service.SignTokenForUser(model.MockApplicant, []byte("mocksecret"))
 
-	res := testRequest("/api/login", map[string]string{
+	res := testRequest(t, "/api/login", map[string]any{
 		"identity": model.MockApplicant.Email,
 		"password": model.MockPassword,
-		"role":     strconv.Itoa(int(model.MockApplicant.Role)),
+		"role":     model.MockApplicant.Role,
 	}, map[string]string{
 		"Authorization": fmt.Sprintf("Bearer %s", testToken),
 	})
@@ -196,7 +221,7 @@ func TestAlreadyLoggedIn(t *testing.T) {
 func TestWrongRoute(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest("/api/wrong", map[string]string{}, map[string]string{})
+	res := testRequest(t, "/api/wrong", map[string]any{}, map[string]string{})
 	defer res.Body.Close()
 
 	require.Equal(t, http.StatusNotFound, res.StatusCode)
