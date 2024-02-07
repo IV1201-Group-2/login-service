@@ -15,9 +15,9 @@ import (
 )
 
 type loginParams struct {
-	Identity string     `form:"identity" validate:"required"`
-	Password string     `form:"password" validate:"required"`
-	Role     model.Role `form:"role"     validate:"required"`
+	Identity string     `form:"identity" json:"identity" validate:"required"`
+	Password string     `form:"password" json:"password" validate:"required"`
+	Role     model.Role `form:"role"     json:"role"     validate:"omitempty"`
 }
 
 // Login route handler.
@@ -34,7 +34,7 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 		return c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: model.APIErrMissingParameters})
 	}
 
-	user, err := db.QueryUser(params.Identity, params.Role)
+	user, err := db.QueryUser(params.Identity)
 	if err != nil {
 		if errors.Is(err, database.ErrUserNotFound) {
 			return c.JSON(http.StatusUnauthorized, model.ErrorResponse{Error: model.APIErrWrongIdentity})
@@ -43,6 +43,11 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 		// Something went wrong, DB down?
 		c.Logger().Errorf("/api/login QueryUser: %v", err)
 		return c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: model.APIErrUnknown})
+	}
+
+	// If the caller specified a role, we want to check if the user matches expectations
+	if params.Role > 0 && params.Role != user.Role {
+		return c.JSON(http.StatusUnauthorized, model.ErrorResponse{Error: model.APIErrWrongIdentity})
 	}
 
 	// TODO: User should be sent an email
