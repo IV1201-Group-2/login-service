@@ -1,6 +1,9 @@
 package model
 
-import "github.com/golang-jwt/jwt/v5"
+import (
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
+)
 
 // Represents the routes that a user is allowed to access.
 type Role int
@@ -14,18 +17,28 @@ const (
 
 // Represents a user in the database.
 type User struct {
-	ID   int  `json:"id"`
+	// ID of the user in the database
+	ID int `json:"id"`
+	// The role of this user, represents the routes they're allowed to access
 	Role Role `json:"role"`
 
-	Username string `json:"username"`
-	Email    string `json:"email"`
+	// If the user has a username, this will be set to a non-empty string
+	Username string `json:"username,omitempty"`
+	// If the user has an e-mail address, this will be set to a non-empty string
+	Email string `json:"email,omitempty"`
 
-	// Omit from JSON response
-	Password string `json:"-"`
+	// Bcrypt-encoded password
+	Password string `json:"-"` // Omit from JSON response
 }
 
 // Custom claims that can be read by the client and other microservices.
 type UserClaims struct {
 	User
 	jwt.RegisteredClaims
+}
+
+// Compares a plaintext password with a hashed password stored in the database.
+func ComparePassword(plaintext string, hashed string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plaintext))
+	return err == nil
 }

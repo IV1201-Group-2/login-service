@@ -66,7 +66,7 @@ func TestLogin(t *testing.T) {
 
 	res := testRequest("/api/login", map[string]string{
 		"identity": model.MockApplicant.Email,
-		"password": model.MockApplicant.Password,
+		"password": model.MockPassword,
 		"role":     strconv.Itoa(int(model.MockApplicant.Role)),
 	}, map[string]string{})
 	defer res.Body.Close()
@@ -94,7 +94,7 @@ func TestMissingParameters(t *testing.T) {
 	t.Parallel()
 
 	res := testRequest("/api/login", map[string]string{
-		"password": model.MockApplicant.Password,
+		"password": model.MockPassword,
 		"role":     strconv.Itoa(int(model.MockApplicant.Role)),
 	}, map[string]string{})
 	defer res.Body.Close()
@@ -134,7 +134,7 @@ func TestLoginWrongRole(t *testing.T) {
 
 	res := testRequest("/api/login", map[string]string{
 		"identity": model.MockApplicant.Email,
-		"password": model.MockApplicant.Password,
+		"password": model.MockPassword,
 		"role":     strconv.Itoa(int(model.RoleRecruiter)),
 	}, map[string]string{})
 	defer res.Body.Close()
@@ -176,7 +176,7 @@ func TestAlreadyLoggedIn(t *testing.T) {
 
 	res := testRequest("/api/login", map[string]string{
 		"identity": model.MockApplicant.Email,
-		"password": model.MockApplicant.Password,
+		"password": model.MockPassword,
 		"role":     strconv.Itoa(int(model.MockApplicant.Role)),
 	}, map[string]string{
 		"Authorization": fmt.Sprintf("Bearer %s", testToken),
