@@ -7,12 +7,15 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/IV1201-Group-2/login-service/database"
 	"github.com/IV1201-Group-2/login-service/model"
 	"github.com/IV1201-Group-2/login-service/service"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	"github.com/joho/godotenv"
 )
 
 // Custom error handler conformant with shared API rules
@@ -50,6 +53,12 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 }
 
 func main() {
+	if os.Getenv("APP_ENV") == "development" {
+		godotenv.Load(".env.development")
+	} else {
+		godotenv.Load(".env")
+	}
+
 	srv := echo.New()
 
 	// Universal middleware for all routes
@@ -66,6 +75,14 @@ func main() {
 		log.Fatal("$PORT must be set")
 	}
 
-	service.RegisterMockRoutes(srv)
+	db, err := database.Connect(os.Getenv("DATABASE_URL"))
+	if err == database.ErrConnectionMockMode {
+		log.Println("Server is in mock mode")
+	} else if err != nil {
+		log.Fatalf("Database error: %v", err)
+	}
+	defer db.Close()
+
+	service.RegisterRoutes(srv, db)
 	srv.Logger.Fatal(srv.Start(fmt.Sprintf(":%d", port)))
 }

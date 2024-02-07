@@ -1,8 +1,10 @@
 package model
 
 const (
-	APIErrUnknown           = "UNKNOWN"
+	APIErrUnknown = "UNKNOWN"
+
 	APIErrMissingParameters = "MISSING_PARAMETERS"
+	APIErrMissingPassword   = "MISSING_PASSWORD"
 
 	APIErrWrongIdentity = "WRONG_IDENTITY"
 	APIErrWrongPassword = "WRONG_PASSWORD"
@@ -10,11 +12,12 @@ const (
 	APIErrAlreadyLoggedIn = "ALREADY_LOGGED_IN"
 )
 
-type LoginSuccessResponse struct {
+// Specific success response for this API
+type SuccessResponse struct {
 	Token string `json:"token"`
 }
 
-// Generic error response
+// Shared error response for all APIs
 type ErrorDetails struct {
 	Message string `json:"message"`
 }

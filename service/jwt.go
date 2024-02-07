@@ -28,22 +28,13 @@ func newClaimsFunc(c echo.Context) jwt.Claims {
 	return &model.UserClaims{}
 }
 
-// Use the production signing key
-var ProdAuthConfig = echojwt.Config{
+// JWT signing key and error handler
+var AuthConfig = echojwt.Config{
 	ErrorHandler:           errorHandlerFunc,
 	ContinueOnIgnoredError: true,
 
 	NewClaimsFunc: newClaimsFunc,
-	SigningKey:    os.Getenv("JWT_SECRET"),
-}
-
-// Use the mock signing key
-var MockAuthConfig = echojwt.Config{
-	ErrorHandler:           errorHandlerFunc,
-	ContinueOnIgnoredError: true,
-
-	NewClaimsFunc: newClaimsFunc,
-	SigningKey:    model.MockJWTSigningKey,
+	SigningKey:    []byte(os.Getenv("JWT_SECRET")),
 }
 
 func SignTokenForUser(user model.User, config *echojwt.Config) (string, error) {
