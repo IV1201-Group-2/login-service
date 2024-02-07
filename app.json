@@ -1,0 +1,11 @@
+{
+	"name": "login-service",
+	"description": "Microservice for authenticating users and generating tokens",
+	"website": "https://github.com/IV1201-Group-2",
+	"repository": "https://github.com/IV1201-Group-2/login-service",
+	"buildpacks": [
+		{
+			"url": "heroku/go"
+		}
+	]
+}
