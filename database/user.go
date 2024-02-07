@@ -1,3 +1,5 @@
+// The package database implements functions for connecting to the database
+// and querying information about users.
 package database
 
 import (
@@ -9,29 +11,36 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// Indicates that connection to the database failed.
 var ErrConnectionFailed = errors.New("connection failed")
+
+// Indicates that a mock database is being used.
+// This is a warning and can be ignored if the user is informed.
 var ErrConnectionMockMode = errors.New("database is in mock mode")
 
+// Indicates that a user with the specificed identity couldn't be found.
 var ErrUserNotFound = errors.New("user not found in db")
 
+// Represents a connection to a database.
+// The connection should be closed when it's no longer being used.
 type Connection interface {
-	// Queries the database for a user with a specific identity and role
+	// Queries the database for a user with a specific identity and role.
 	QueryUser(identity string, role model.Role) (*model.User, error)
-	// Closes the database connection
+	// Closes the database connection.
 	Close() error
 }
 
-type SQLConnection struct {
+type sqlConnection struct {
 	db *sql.DB
 }
 
-type MockConnection struct{}
+type mockConnection struct{}
 
-// Attempt to connect to Postgres database
+// Attempt to connect to Postgres database.
 func Connect(databaseURL string) (Connection, error) {
 	if databaseURL == "mock" {
-		// Caller can choose to allow mock connections
-		return MockConnection{}, ErrConnectionMockMode
+		// Caller can choose to allow mock connections.
+		return mockConnection{}, ErrConnectionMockMode
 	}
 
 	db, err := sql.Open("postgres", databaseURL)
@@ -44,13 +53,13 @@ func Connect(databaseURL string) (Connection, error) {
 		return nil, ErrConnectionFailed
 	}
 
-	return SQLConnection{db: db}, nil
+	return sqlConnection{db: db}, nil
 }
 
 const userQuery = "SELECT person_id, username, email, password FROM person WHERE (username = $1 OR email = $1) AND role_id = $2"
 
-// SQL implementation of database query
-func (c SQLConnection) QueryUser(identity string, role model.Role) (*model.User, error) {
+// SQL implementation of database query.
+func (c sqlConnection) QueryUser(identity string, role model.Role) (*model.User, error) {
 	var name, email, password sql.NullString
 	user := &model.User{Role: role}
 
@@ -75,12 +84,12 @@ func (c SQLConnection) QueryUser(identity string, role model.Role) (*model.User,
 
 	return user, nil
 }
-func (c SQLConnection) Close() error {
+func (c sqlConnection) Close() error {
 	return c.db.Close()
 }
 
-// Mock implementation of database query
-func (c MockConnection) QueryUser(identity string, role model.Role) (*model.User, error) {
+// Mock implementation of database query.
+func (c mockConnection) QueryUser(identity string, role model.Role) (*model.User, error) {
 	var mockAllowedUsers = []model.User{model.MockApplicant, model.MockRecruiter}
 	for _, user := range mockAllowedUsers {
 		if (user.Username == identity || user.Email == identity) && user.Role == role {
@@ -89,6 +98,6 @@ func (c MockConnection) QueryUser(identity string, role model.Role) (*model.User
 	}
 	return nil, ErrUserNotFound
 }
-func (c MockConnection) Close() error {
+func (c mockConnection) Close() error {
 	return nil
 }
