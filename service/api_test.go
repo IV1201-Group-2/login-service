@@ -89,7 +89,7 @@ func TestLogin(t *testing.T) {
 	require.Equal(t, model.MockApplicant.Role, claims.Role)
 }
 
-// Tests that the server returns MISSING_PARAMETERS when API caller is missing parameters.
+// Tests that the server returns MISSING_PARAMETERS when API caller is missing required parameters.
 func TestMissingParameters(t *testing.T) {
 	t.Parallel()
 
@@ -106,6 +106,19 @@ func TestMissingParameters(t *testing.T) {
 
 	require.NoError(t, json.Unmarshal(body, &obj))
 	require.Equal(t, "MISSING_PARAMETERS", obj.Error)
+}
+
+// Tests that the server does not return MISSING_PARAMETERS when API caller is missing optional parameters.
+func TestOptionalParameters(t *testing.T) {
+	t.Parallel()
+
+	res := testRequest("/api/login", map[string]string{
+		"identity": model.MockApplicant.Email,
+		"password": model.MockPassword,
+	}, map[string]string{})
+	defer res.Body.Close()
+
+	require.Equal(t, http.StatusOK, res.StatusCode)
 }
 
 // Tests that the server returns WRONG_IDENTITY when user does not exist.
