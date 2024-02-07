@@ -1,10 +1,10 @@
 package model
 
-// Plain-text version of password used in tests
+// MockPassword is a plain-text version of password used in tests.
 const MockPassword = "password"
 
-// Bcrypt encoded version of password used in tests
-const MockPasswordBcrypt = "$2a$10$c4WCXRkTtYb3fJ7Wpnjok.nhrEcFyxqpJ/mjfAjBDzqW1IWT6EjVi"
+// MockPasswordBcrypt is a Bcrypt encoded version of password used in tests.
+const MockPasswordBcrypt = "$2a$10$c4WCXRkTtYb3fJ7Wpnjok.nhrEcFyxqpJ/mjfAjBDzqW1IWT6EjVi" // #nosec G101
 
 // MockApplicant is an example user with role "applicant".
 var MockApplicant = User{
