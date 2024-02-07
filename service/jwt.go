@@ -48,7 +48,7 @@ func NewAuthConfig() (*echojwt.Config, error) {
 }
 
 // Signs a token for the specified user with the specified authentication config.
-// This function returns the encoded token in plaintext or an error if signing failed
+// This function returns the encoded token in plaintext or an error if signing failed.
 func SignTokenForUser(user model.User, signingKey interface{}) (string, error) {
 	claims := model.UserClaims{
 		User: user,

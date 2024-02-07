@@ -47,10 +47,8 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 		if user.Password == "" {
 			return c.JSON(404, model.ErrorResponse{Error: model.APIErrMissingPassword})
 		}
-
 		// Check that password matches
-		// TODO: Hashing algorithm
-		if user.Password != params.Password {
+		if !model.ComparePassword(params.Password, user.Password) {
 			return c.JSON(401, model.ErrorResponse{Error: model.APIErrWrongPassword})
 		}
 
