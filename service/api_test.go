@@ -42,11 +42,13 @@ func mockKeyFunc(_ *jwt.Token) (interface{}, error) {
 var useJSON = os.Getenv("TEST_JSON") == "1"
 
 // Sends a request to mock server and returns response.
-func testRequest(path string, params map[string]any, headers map[string]string) *http.Response {
-	var req *http.Request
+func testRequest(t *testing.T, path string, params map[string]any, headers map[string]string) *http.Response {
+	t.Helper()
 
+	var req *http.Request
 	if useJSON {
-		json, _ := json.Marshal(params)
+		json, err := json.Marshal(params)
+		require.NoError(t, err)
 		req = httptest.NewRequest(http.MethodPost, path, bytes.NewReader(json))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	} else {
@@ -74,7 +76,7 @@ func testRequest(path string, params map[string]any, headers map[string]string) 
 func TestLogin(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest("/api/login", map[string]any{
+	res := testRequest(t, "/api/login", map[string]any{
 		"identity": model.MockApplicant.Email,
 		"password": model.MockPassword,
 		"role":     model.MockApplicant.Role,
@@ -103,7 +105,7 @@ func TestLogin(t *testing.T) {
 func TestMissingParameters(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest("/api/login", map[string]any{
+	res := testRequest(t, "/api/login", map[string]any{
 		"password": model.MockPassword,
 		"role":     model.MockApplicant.Role,
 	}, map[string]string{})
@@ -122,7 +124,7 @@ func TestMissingParameters(t *testing.T) {
 func TestOptionalParameters(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest("/api/login", map[string]any{
+	res := testRequest(t, "/api/login", map[string]any{
 		"identity": model.MockApplicant.Email,
 		"password": model.MockPassword,
 	}, map[string]string{})
@@ -135,7 +137,7 @@ func TestOptionalParameters(t *testing.T) {
 func TestLoginMissingUser(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest("/api/login", map[string]any{
+	res := testRequest(t, "/api/login", map[string]any{
 		"identity": "doesnotexist@example.com",
 		"password": "password",
 		"role":     1,
@@ -155,7 +157,7 @@ func TestLoginMissingUser(t *testing.T) {
 func TestLoginWrongRole(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest("/api/login", map[string]any{
+	res := testRequest(t, "/api/login", map[string]any{
 		"identity": model.MockApplicant.Email,
 		"password": model.MockPassword,
 		"role":     model.RoleRecruiter,
@@ -175,7 +177,7 @@ func TestLoginWrongRole(t *testing.T) {
 func TestLoginWrongPassword(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest("/api/login", map[string]any{
+	res := testRequest(t, "/api/login", map[string]any{
 		"identity": model.MockApplicant.Email,
 		"password": "wrong",
 		"role":     model.MockApplicant.Role,
@@ -197,7 +199,7 @@ func TestAlreadyLoggedIn(t *testing.T) {
 
 	testToken, _ := service.SignTokenForUser(model.MockApplicant, []byte("mocksecret"))
 
-	res := testRequest("/api/login", map[string]any{
+	res := testRequest(t, "/api/login", map[string]any{
 		"identity": model.MockApplicant.Email,
 		"password": model.MockPassword,
 		"role":     model.MockApplicant.Role,
@@ -219,7 +221,7 @@ func TestAlreadyLoggedIn(t *testing.T) {
 func TestWrongRoute(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest("/api/wrong", map[string]any{}, map[string]string{})
+	res := testRequest(t, "/api/wrong", map[string]any{}, map[string]string{})
 	defer res.Body.Close()
 
 	require.Equal(t, http.StatusNotFound, res.StatusCode)
