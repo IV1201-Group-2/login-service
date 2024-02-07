@@ -29,6 +29,7 @@ func main() {
 		Format: "[${remote_ip}] ${protocol} ${method} ${uri} in ${latency_human} (${status})\n",
 	}))
 	srv.Use(middleware.Recover())
+	srv.Use(middleware.CORS())
 
 	srv.HTTPErrorHandler = service.ErrorHandler
 	srv.Validator = service.NewValidator()
