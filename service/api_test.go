@@ -64,7 +64,7 @@ func testRequest(path string, params map[string]string, headers map[string]strin
 func TestLogin(t *testing.T) {
 	res := testRequest("/api/login", map[string]string{
 		"identity": model.MockApplicant.Email,
-		"password": model.MockApplicant.Password,
+		"password": model.MockPassword,
 		"role":     strconv.Itoa(int(model.MockApplicant.Role)),
 	}, map[string]string{})
 
@@ -89,7 +89,7 @@ func TestLogin(t *testing.T) {
 // Tests that the server returns MISSING_PARAMETERS when API caller is missing parameters.
 func TestMissingParameters(t *testing.T) {
 	res := testRequest("/api/login", map[string]string{
-		"password": model.MockApplicant.Password,
+		"password": model.MockPassword,
 		"role":     strconv.Itoa(int(model.MockApplicant.Role)),
 	}, map[string]string{})
 
@@ -121,7 +121,7 @@ func TestLoginMissingUser(t *testing.T) {
 func TestLoginWrongRole(t *testing.T) {
 	res := testRequest("/api/login", map[string]string{
 		"identity": model.MockApplicant.Email,
-		"password": model.MockApplicant.Password,
+		"password": model.MockPassword,
 		"role":     strconv.Itoa(int(model.RoleRecruiter)),
 	}, map[string]string{})
 
@@ -155,7 +155,7 @@ func TestAlreadyLoggedIn(t *testing.T) {
 
 	res := testRequest("/api/login", map[string]string{
 		"identity": model.MockApplicant.Email,
-		"password": model.MockApplicant.Password,
+		"password": model.MockPassword,
 		"role":     strconv.Itoa(int(model.MockApplicant.Role)),
 	}, map[string]string{
 		"Authorization": fmt.Sprintf("Bearer %s", testToken),
