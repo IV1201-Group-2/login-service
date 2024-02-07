@@ -1,6 +1,6 @@
 package model
 
-// Mock user with role "applicant".
+// MockApplicant is an example user with role "applicant".
 var MockApplicant = User{
 	ID:   0,
 	Role: RoleApplicant,
@@ -10,7 +10,7 @@ var MockApplicant = User{
 	Password: "password",
 }
 
-// Mock user with role "recruiter".
+// MockRecruiter is an example user with role "recruiter".
 var MockRecruiter = User{
 	ID:   1,
 	Role: RoleRecruiter,

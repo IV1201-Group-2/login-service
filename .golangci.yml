@@ -1,0 +1,27 @@
+linters:
+  presets:
+    - bugs
+    - comment
+    - complexity
+    - error
+    - format
+    - import
+    - metalinter
+    - module
+    - performance
+    - sql
+    - style
+    - test
+    - unused
+  disable:
+    - depguard
+    - exhaustruct
+    - gochecknoglobals
+    - godox
+    - gofumpt
+    - ireturn
+    - lll
+    - nlreturn
+    - varnamelen
+    - wrapcheck
+    - wsl

@@ -7,18 +7,18 @@ import (
 	"errors"
 
 	"github.com/IV1201-Group-2/login-service/model"
-
+	// Initializes Postgres driver.
 	_ "github.com/lib/pq"
 )
 
-// Indicates that connection to the database failed.
+// ErrConnectionFailed indicates that connection to the database failed.
 var ErrConnectionFailed = errors.New("connection failed")
 
-// Indicates that a mock database is being used.
+// ErrConnectionMockMode indicates that a mock database is being used.
 // This is a warning and can be ignored if the user is informed.
 var ErrConnectionMockMode = errors.New("database is in mock mode")
 
-// Indicates that a user with the specificed identity couldn't be found.
+// ErrUserNotFound indicates that a user with the specificed identity couldn't be found.
 var ErrUserNotFound = errors.New("user not found in db")
 
 // Represents a connection to a database.
@@ -66,7 +66,7 @@ func (c sqlConnection) QueryUser(identity string, role model.Role) (*model.User,
 	row := c.db.QueryRow(userQuery, identity, role)
 	err := row.Scan(&user.ID, &name, &email, &password)
 
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrUserNotFound
 	} else if err != nil {
 		return nil, err
