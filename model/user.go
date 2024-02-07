@@ -27,7 +27,7 @@ type User struct {
 	// If the user has an e-mail address, this will be set to a non-empty string
 	Email string `json:"email,omitempty"`
 
-	// BCrypt-encoded password
+	// Bcrypt-encoded password
 	Password string `json:"-"` // Omit from JSON response
 }
 
