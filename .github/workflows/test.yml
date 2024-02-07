@@ -24,4 +24,6 @@ jobs:
       - name: Build
         run: go build -v ./...
       - name: Run all tests
-        run: go test ./...
+        run: |
+          TEST_JSON=0 go test ./... -count=1
+          TEST_JSON=1 go test ./... -count=1
