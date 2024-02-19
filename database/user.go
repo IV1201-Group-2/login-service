@@ -81,7 +81,7 @@ func (c sqlConnection) QueryUser(identity string) (*model.User, error) {
 	return user, nil
 }
 
-const updatePasswordStatement = "UPDATE person SET password = $2 WHERE id = $1"
+const updatePasswordStatement = "UPDATE person SET password = $2 WHERE person_id = $1"
 
 // SQL implementation of database password update.
 func (c sqlConnection) UpdatePassword(id int, plaintext string) error {
