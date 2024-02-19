@@ -92,7 +92,7 @@ func TestLogin(t *testing.T) {
 	require.NoError(t, json.Unmarshal(body, &obj))
 	require.NotEqual(t, "", obj.Token, "Response does not contain token")
 
-	claims := model.UserClaims{}
+	claims := model.CustomUserClaims{}
 	// Parse the embedded JWT token
 	_, err := jwt.ParseWithClaims(obj.Token, &claims, mockKeyFunc)
 
@@ -197,7 +197,7 @@ func TestLoginWrongPassword(t *testing.T) {
 func TestAlreadyLoggedIn(t *testing.T) {
 	t.Parallel()
 
-	testToken, _ := service.SignTokenForUser(model.MockApplicant, []byte("mocksecret"))
+	testToken, _ := service.SignUserToken(model.MockApplicant, []byte("mocksecret"))
 
 	res := testRequest(t, "/api/login", map[string]any{
 		"identity": model.MockApplicant.Email,
@@ -233,3 +233,5 @@ func TestWrongRoute(t *testing.T) {
 	require.Equal(t, "UNKNOWN", obj.Error)
 	require.NotNil(t, obj.Details)
 }
+
+// TODO: Test missing password

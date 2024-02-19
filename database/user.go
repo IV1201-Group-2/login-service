@@ -26,6 +26,8 @@ var ErrUserNotFound = errors.New("user not found in db")
 type Connection interface {
 	// Queries the database for a user with a specific identity and role.
 	QueryUser(identity string) (*model.User, error)
+	// Updates a user password in the database.
+	UpdatePassword(id int, plaintext string) error
 	// Closes the database connection.
 	Close() error
 }
@@ -56,14 +58,14 @@ func Connect(databaseURL string) (Connection, error) {
 	return sqlConnection{db: db}, nil
 }
 
-const userQuery = "SELECT person_id, username, email, password, role_id FROM person WHERE (username = $1 OR email = $1)"
+const userQueryStatement = "SELECT person_id, username, email, password, role_id FROM person WHERE (username = $1 OR email = $1)"
 
 // SQL implementation of database query.
 func (c sqlConnection) QueryUser(identity string) (*model.User, error) {
 	var name, email, password sql.NullString
 	user := &model.User{}
 
-	row := c.db.QueryRow(userQuery, identity)
+	row := c.db.QueryRow(userQueryStatement, identity)
 	err := row.Scan(&user.ID, &name, &email, &password, &user.Role)
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -78,6 +80,30 @@ func (c sqlConnection) QueryUser(identity string) (*model.User, error) {
 
 	return user, nil
 }
+
+const updatePasswordStatement = "UPDATE person SET password = $2 WHERE id = $1"
+
+// SQL implementation of database password update.
+func (c sqlConnection) UpdatePassword(id int, plaintext string) error {
+	hashedPassword, err := model.HashPassword(plaintext)
+	if err != nil {
+		return err
+	}
+
+	result, err := c.db.Exec(updatePasswordStatement, id, hashedPassword)
+
+	// Error executing statement
+	if err != nil {
+		return err
+	}
+	// Error finding user
+	if rows, err := result.RowsAffected(); err != nil || rows != 1 {
+		return ErrUserNotFound
+	}
+
+	return nil
+}
+
 func (c sqlConnection) Close() error {
 	return c.db.Close()
 }
@@ -92,6 +118,12 @@ func (c mockConnection) QueryUser(identity string) (*model.User, error) {
 	}
 	return nil, ErrUserNotFound
 }
+
+// Mock implementation of database password update. Not supported.
+func (c mockConnection) UpdatePassword(_ int, _ string) error {
+	return ErrUserNotFound
+}
+
 func (c mockConnection) Close() error {
 	return nil
 }

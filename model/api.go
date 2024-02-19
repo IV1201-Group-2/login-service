@@ -17,6 +17,8 @@ const (
 
 	// User is already logged in (JWT token was provided).
 	APIErrAlreadyLoggedIn = "ALREADY_LOGGED_IN"
+	// User did not provide a token for reset API.
+	APIErrTokenNotProvided = "TOKEN_NOT_PROVIDED" // #nosec G101
 )
 
 // Specific success response for this API.
@@ -26,7 +28,8 @@ type SuccessResponse struct {
 
 // Provides additional details about an error.
 type ErrorDetails struct {
-	Message string `json:"message"`
+	Message    string `json:"message,omitempty"`
+	ResetToken string `json:"reset_token,omitempty"`
 }
 
 // Shared error response for all APIs.
