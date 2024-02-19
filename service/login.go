@@ -1,10 +1,7 @@
-// The package service contains the implementation of the microservice.
-// This includes handling the login process and signing JWT tokens.
 package service
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/IV1201-Group-2/login-service/database"
@@ -39,9 +36,7 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 		if errors.Is(err, database.ErrUserNotFound) {
 			return c.JSON(http.StatusUnauthorized, model.ErrorResponse{Error: model.APIErrWrongIdentity})
 		}
-
-		// Something went wrong, DB down?
-		c.Logger().Errorf("QueryUser: %v", err)
+		// TODO: Handle DB connection failure gracefully
 		return c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: model.APIErrUnknown})
 	}
 
@@ -52,8 +47,20 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 
 	// Check that user has a valid password in the database
 	if user.Password == "" {
-		return c.JSON(http.StatusNotFound, model.ErrorResponse{Error: model.APIErrMissingPassword})
+		// Create a new reset token allowing the user to reset their password
+		token, err := SignResetToken(*user, authConfig.SigningKey)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: model.APIErrUnknown})
+		}
+		response := model.ErrorResponse{
+			Error: model.APIErrMissingPassword,
+			Details: &model.ErrorDetails{
+				ResetToken: token,
+			},
+		}
+		return c.JSON(http.StatusNotFound, response)
 	}
+
 	// Check that password matches
 	if !model.ComparePassword(params.Password, user.Password) {
 		return c.JSON(http.StatusUnauthorized, model.ErrorResponse{Error: model.APIErrWrongPassword})
@@ -62,23 +69,7 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 	// Create a new token valid for auth expiry period
 	token, err := SignUserToken(*user, authConfig.SigningKey)
 	if err != nil {
-		// Something went wrong when signing the token
-		c.Logger().Errorf("SignTokenForUser: %v", err)
 		return c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: model.APIErrUnknown})
 	}
-
 	return c.JSON(http.StatusOK, model.SuccessResponse{Token: token})
-}
-
-// Register all REST API routes.
-func RegisterRoutes(srv *echo.Echo, db database.Connection) {
-	authConfig, err := NewAuthConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	srv.Use(echojwt.WithConfig(*authConfig))
-	srv.POST("/api/login", func(c echo.Context) error {
-		return Login(c, db, authConfig)
-	})
 }

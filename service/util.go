@@ -1,3 +1,5 @@
+// The package service contains the implementation of the microservice.
+// This includes handling the login process and signing JWT tokens.
 package service
 
 import (

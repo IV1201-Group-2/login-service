@@ -27,7 +27,7 @@ func errorHandlerFunc(_ echo.Context, err error) error {
 }
 
 func newClaimsFunc(_ echo.Context) jwt.Claims {
-	return &model.UserClaims{}
+	return &model.CustomUserClaims{}
 }
 
 var authConfigTemplate = echojwt.Config{
@@ -52,11 +52,9 @@ func NewAuthConfig() (*echojwt.Config, error) {
 func signToken(claims jwt.Claims, signingKey interface{}) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	encodedToken, err := token.SignedString(signingKey)
-
 	if err != nil {
 		return "", err
 	}
-
 	return encodedToken, nil
 }
 
