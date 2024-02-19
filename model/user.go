@@ -50,6 +50,16 @@ type CustomUserClaims struct {
 	jwt.RegisteredClaims
 }
 
+// Encodes a password for insertion into the database.
+func HashPassword(plaintext string) (string, error) {
+	// Match default cost of Spring BCryptPasswordEncoder
+	result, err := bcrypt.GenerateFromPassword([]byte(plaintext), 10)
+	if err != nil {
+		return "", err
+	}
+	return string(result), nil
+}
+
 // Compares a plaintext password with a hashed password stored in the database.
 func ComparePassword(plaintext string, hashed string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plaintext))
