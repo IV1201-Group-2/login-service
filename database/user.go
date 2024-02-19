@@ -120,7 +120,7 @@ func (c mockConnection) QueryUser(identity string) (*model.User, error) {
 }
 
 // Mock implementation of database password update. Not supported.
-func (c mockConnection) UpdatePassword(id int, plaintext string) error {
+func (c mockConnection) UpdatePassword(_ int, _ string) error {
 	return ErrUserNotFound
 }
 

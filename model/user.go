@@ -50,10 +50,12 @@ type CustomUserClaims struct {
 	jwt.RegisteredClaims
 }
 
+// Default cost of Spring BCryptPasswordEncoder.
+const passwordCost = 10
+
 // Encodes a password for insertion into the database.
 func HashPassword(plaintext string) (string, error) {
-	// Match default cost of Spring BCryptPasswordEncoder
-	result, err := bcrypt.GenerateFromPassword([]byte(plaintext), 10)
+	result, err := bcrypt.GenerateFromPassword([]byte(plaintext), passwordCost)
 	if err != nil {
 		return "", err
 	}

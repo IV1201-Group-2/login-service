@@ -25,7 +25,7 @@ func PasswordReset(c echo.Context, db database.Connection, authConfig *echojwt.C
 	}
 
 	// Check if user provided a reset token
-	claims := token.Claims.(*model.CustomUserClaims)
+	claims, _ := token.Claims.(*model.CustomUserClaims)
 	if claims.Usage != model.TokenUsageReset {
 		return c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: model.APIErrAlreadyLoggedIn})
 	}
