@@ -31,8 +31,21 @@ type User struct {
 	Password string `json:"-"` // Omit from JSON response
 }
 
+const (
+	// This is a login token.
+	TokenUsageLogin = "login"
+	// This is a reset token.
+	TokenUsageReset = "reset"
+)
+
+// Claims that are specific to this microservice.
+type CustomClaims struct {
+	Usage string `json:"usage"`
+}
+
 // Custom claims that can be read by the client and other microservices.
-type UserClaims struct {
+type CustomUserClaims struct {
+	CustomClaims
 	User
 	jwt.RegisteredClaims
 }

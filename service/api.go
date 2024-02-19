@@ -41,7 +41,7 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 		}
 
 		// Something went wrong, DB down?
-		c.Logger().Errorf("/api/login QueryUser: %v", err)
+		c.Logger().Errorf("QueryUser: %v", err)
 		return c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: model.APIErrUnknown})
 	}
 
@@ -50,7 +50,7 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 		return c.JSON(http.StatusUnauthorized, model.ErrorResponse{Error: model.APIErrWrongIdentity})
 	}
 
-	// TODO: User should be sent an email
+	// Check that user has a valid password in the database
 	if user.Password == "" {
 		return c.JSON(http.StatusNotFound, model.ErrorResponse{Error: model.APIErrMissingPassword})
 	}
@@ -60,10 +60,10 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 	}
 
 	// Create a new token valid for auth expiry period
-	token, err := SignTokenForUser(*user, authConfig.SigningKey)
+	token, err := SignUserToken(*user, authConfig.SigningKey)
 	if err != nil {
 		// Something went wrong when signing the token
-		c.Logger().Errorf("/api/login SignTokenForUser: %v", err)
+		c.Logger().Errorf("SignTokenForUser: %v", err)
 		return c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: model.APIErrUnknown})
 	}
 

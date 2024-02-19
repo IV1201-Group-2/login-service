@@ -26,7 +26,8 @@ type SuccessResponse struct {
 
 // Provides additional details about an error.
 type ErrorDetails struct {
-	Message string `json:"message"`
+	Message    string `json:"message,omitempty"`
+	ResetToken string `json:"reset_token,omitempty"`
 }
 
 // Shared error response for all APIs.
