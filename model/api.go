@@ -17,6 +17,8 @@ const (
 
 	// User is already logged in (JWT token was provided).
 	APIErrAlreadyLoggedIn = "ALREADY_LOGGED_IN"
+	// User did not provide a token for reset API
+	APIErrTokenNotProvided = "TOKEN_NOT_PROVIDED"
 )
 
 // Specific success response for this API.
