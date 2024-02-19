@@ -40,12 +40,14 @@ func PasswordReset(c echo.Context, db database.Connection, authConfig *echojwt.C
 	if err != nil {
 		// TODO: Handle DB connection failure gracefully
 		// This should not occur under any other condition
+		c.Logger().Errorf("UpdatePassword: %v", err)
 		return c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: model.APIErrUnknown})
 	}
 
 	// Create a new token valid for auth expiry period
 	newToken, err := SignUserToken(claims.User, authConfig.SigningKey)
 	if err != nil {
+		c.Logger().Errorf("SignUserToken: %v", err)
 		return c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: model.APIErrUnknown})
 	}
 	return c.JSON(http.StatusOK, model.SuccessResponse{Token: newToken})

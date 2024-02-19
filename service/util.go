@@ -15,7 +15,7 @@ import (
 // Custom error handler conformant with shared API rules.
 // https://echo.labstack.com/docs/error-handling
 func ErrorHandler(err error, c echo.Context) {
-	c.Logger().Error(err)
+	c.Logger().Errorf("ErrorHandler: %v", err)
 
 	var details *model.ErrorDetails
 	code := http.StatusInternalServerError

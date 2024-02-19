@@ -36,6 +36,7 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 		if errors.Is(err, database.ErrUserNotFound) {
 			return c.JSON(http.StatusUnauthorized, model.ErrorResponse{Error: model.APIErrWrongIdentity})
 		}
+		c.Logger().Errorf("QueryUser: %v", err)
 		// TODO: Handle DB connection failure gracefully
 		return c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: model.APIErrUnknown})
 	}
@@ -50,6 +51,7 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 		// Create a new reset token allowing the user to reset their password
 		token, err := SignResetToken(*user, authConfig.SigningKey)
 		if err != nil {
+			c.Logger().Errorf("SignResetToken: %v", err)
 			return c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: model.APIErrUnknown})
 		}
 		response := model.ErrorResponse{
@@ -69,6 +71,7 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 	// Create a new token valid for auth expiry period
 	token, err := SignUserToken(*user, authConfig.SigningKey)
 	if err != nil {
+		c.Logger().Errorf("SignUserToken: %v", err)
 		return c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: model.APIErrUnknown})
 	}
 	return c.JSON(http.StatusOK, model.SuccessResponse{Token: token})
