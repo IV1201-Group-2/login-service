@@ -7,7 +7,7 @@ import (
 	"errors"
 
 	"github.com/IV1201-Group-2/login-service/model"
-	// Initializes Postgres driver.
+	// Imports Postgres driver.
 	_ "github.com/lib/pq"
 )
 

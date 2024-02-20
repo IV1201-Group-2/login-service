@@ -85,7 +85,7 @@ func TestLogin(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, res.StatusCode)
 
-	obj := model.SuccessResponse{}
+	obj := model.UserTokenResponse{}
 	body, _ := io.ReadAll(res.Body)
 
 	// Parse the response
@@ -113,11 +113,11 @@ func TestMissingParameters(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-	obj := model.ErrorResponse{}
+	obj := model.APIError{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
-	require.Equal(t, "MISSING_PARAMETERS", obj.Error)
+	require.Equal(t, "MISSING_PARAMETERS", obj.ErrorType)
 }
 
 // Tests that the server does not return MISSING_PARAMETERS when API caller is missing optional parameters.
@@ -146,11 +146,11 @@ func TestLoginMissingUser(t *testing.T) {
 
 	require.Equal(t, http.StatusUnauthorized, res.StatusCode)
 
-	obj := model.ErrorResponse{}
+	obj := model.APIError{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
-	require.Equal(t, "WRONG_IDENTITY", obj.Error)
+	require.Equal(t, "WRONG_IDENTITY", obj.ErrorType)
 }
 
 // Tests that the server returns WRONG_IDENTITY when user has a different role.
@@ -166,11 +166,11 @@ func TestLoginWrongRole(t *testing.T) {
 
 	require.Equal(t, http.StatusUnauthorized, res.StatusCode)
 
-	obj := model.ErrorResponse{}
+	obj := model.APIError{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
-	require.Equal(t, "WRONG_IDENTITY", obj.Error)
+	require.Equal(t, "WRONG_IDENTITY", obj.ErrorType)
 }
 
 // Tests that the server returns WRONG_PASSWORD when user has wrong password.
@@ -186,11 +186,11 @@ func TestLoginWrongPassword(t *testing.T) {
 
 	require.Equal(t, http.StatusUnauthorized, res.StatusCode)
 
-	obj := model.ErrorResponse{}
+	obj := model.APIError{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
-	require.Equal(t, "WRONG_PASSWORD", obj.Error)
+	require.Equal(t, "WRONG_PASSWORD", obj.ErrorType)
 }
 
 // Tests that the server returns ALREADY_LOGGED_IN when a JWT token is set.
@@ -210,11 +210,11 @@ func TestAlreadyLoggedIn(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-	obj := model.ErrorResponse{}
+	obj := model.APIError{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
-	require.Equal(t, "ALREADY_LOGGED_IN", obj.Error)
+	require.Equal(t, "ALREADY_LOGGED_IN", obj.ErrorType)
 }
 
 // Tests that the server returns an error conformant with shared API rules on wrong route.
@@ -226,12 +226,11 @@ func TestWrongRoute(t *testing.T) {
 
 	require.Equal(t, http.StatusNotFound, res.StatusCode)
 
-	obj := model.ErrorResponse{}
+	obj := model.APIError{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
-	require.Equal(t, "UNKNOWN", obj.Error)
-	require.NotNil(t, obj.Details)
+	require.Equal(t, "INVALID_ROUTE", obj.ErrorType)
 }
 
 // TODO: Test missing password
