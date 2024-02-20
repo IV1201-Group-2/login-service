@@ -22,6 +22,9 @@ func errorHandlerFunc(_ echo.Context, err error) error {
 	if errors.Is(err, echojwt.ErrJWTMissing) {
 		return nil
 	}
+	if errors.Is(err, echojwt.ErrJWTInvalid) {
+		return model.ErrTokenInvalid.WithInternal(err)
+	}
 
 	return err
 }

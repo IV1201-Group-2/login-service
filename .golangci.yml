@@ -23,13 +23,14 @@ linters:
     - ireturn
     - lll
     - nlreturn
+    - tagliatelle
     - varnamelen
     - wrapcheck
     - wsl
 
-linters-settings:
-  tagliatelle:
-    case:
-      use-field-name: true
-      rules:
-        json: snake
+# linters-settings:
+#   tagliatelle:
+#     case:
+#       use-field-name: true
+#       rules:
+#         json: snake
