@@ -31,10 +31,35 @@ type User struct {
 	Password string `json:"-"` // Omit from JSON response
 }
 
+const (
+	// This is a login token.
+	TokenUsageLogin = "login"
+	// This is a reset token.
+	TokenUsageReset = "reset"
+)
+
+// Claims that are specific to this microservice.
+type CustomClaims struct {
+	Usage string `json:"usage"`
+}
+
 // Custom claims that can be read by the client and other microservices.
-type UserClaims struct {
+type CustomUserClaims struct {
+	CustomClaims
 	User
 	jwt.RegisteredClaims
+}
+
+// Default cost of Spring BCryptPasswordEncoder.
+const passwordCost = 10
+
+// Encodes a password for insertion into the database.
+func HashPassword(plaintext string) (string, error) {
+	result, err := bcrypt.GenerateFromPassword([]byte(plaintext), passwordCost)
+	if err != nil {
+		return "", err
+	}
+	return string(result), nil
 }
 
 // Compares a plaintext password with a hashed password stored in the database.

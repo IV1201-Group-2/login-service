@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
@@ -25,25 +24,27 @@ func main() {
 
 	srv := echo.New()
 
-	srv.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "[${remote_ip}] ${protocol} ${method} ${uri} in ${latency_human} (${status})\n",
-	}))
-	srv.Use(middleware.Recover())
-	srv.Use(middleware.CORS())
-
 	srv.HTTPErrorHandler = service.ErrorHandler
 	srv.Validator = service.NewValidator()
 
+	srv.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "[${remote_ip}] ${protocol} ${method} ${uri} in ${latency_human} (${status})\n",
+	}))
+	srv.Logger.SetHeader("")
+
+	srv.Use(middleware.Recover())
+	srv.Use(middleware.CORS())
+
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
-		log.Fatal("$PORT must be set")
+		srv.Logger.Fatal("$PORT must be set")
 	}
 
 	db, err := database.Connect(os.Getenv("DATABASE_URL"))
 	if errors.Is(err, database.ErrConnectionMockMode) {
-		log.Println("Server is in mock mode")
+		srv.Logger.Print("Server is in mock mode")
 	} else if err != nil {
-		log.Fatalf("Database error: %v", err)
+		srv.Logger.Fatalf("Database error: %v", err)
 	}
 	defer db.Close()
 
