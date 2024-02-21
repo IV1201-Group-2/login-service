@@ -5,6 +5,8 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"os"
+	"strconv"
 
 	"github.com/IV1201-Group-2/login-service/model"
 	// Imports Postgres driver.
@@ -48,6 +50,12 @@ func Connect(databaseURL string) (Connection, error) {
 	db, err := sql.Open("postgres", databaseURL)
 	if err != nil {
 		return nil, ErrConnectionFailed
+	}
+
+	// TODO: Temporary hotfix for Heroku max connections issue
+	if maxConn, ok := os.LookupEnv("DATABASE_MAX_CONNECTIONS"); ok {
+		maxConn, _ := strconv.Atoi(maxConn)
+		db.SetMaxOpenConns(maxConn)
 	}
 
 	err = db.Ping()
