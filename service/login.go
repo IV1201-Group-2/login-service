@@ -34,6 +34,7 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 	user, err := db.QueryUser(params.Identity)
 	if err != nil {
 		if errors.Is(err, database.ErrUserNotFound) {
+			LogErrorf(c, "Unauthorized attempt: user '%s' not found", params.Identity)
 			return model.ErrWrongIdentity
 		}
 		return err
@@ -47,22 +48,27 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 	// Check that user has a valid password in the database
 	if user.Password == "" {
 		// Create a new reset token allowing the user to reset their password
-		token, err := SignResetToken(*user, authConfig.SigningKey)
+		token, expiry, err := SignResetToken(*user, authConfig.SigningKey)
 		if err != nil {
 			return err
 		}
+		LogErrorf(c, "Login failed: user has no password in db")
+		LogErrorf(c, "Handed out reset token that expires at %s", expiry.Format("2006-01-02 15:04"))
 		return model.ErrMissingPassword.WithDetails(model.ResetTokenResponse{ResetToken: token})
 	}
 
 	// Check that password matches
 	if !model.ComparePassword(params.Password, user.Password) {
+		LogErrorf(c, "Unauthorized attempt: wrong password for user '%s'", params.Identity)
 		return model.ErrWrongPassword
 	}
 
 	// Create a new token valid for auth expiry period
-	token, err := SignUserToken(*user, authConfig.SigningKey)
+	token, expiry, err := SignUserToken(*user, authConfig.SigningKey)
 	if err != nil {
 		return err
 	}
+	LogErrorf(c, "Login successful: token expires at %s", expiry.Format("2006-01-02 15:04"))
+
 	return c.JSON(http.StatusOK, model.UserTokenResponse{Token: token})
 }

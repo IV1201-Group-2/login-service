@@ -52,18 +52,21 @@ func NewAuthConfig() (*echojwt.Config, error) {
 	return nil, ErrNoSecret
 }
 
-func signToken(claims jwt.Claims, signingKey interface{}) (string, error) {
+func signToken(claims jwt.Claims, signingKey interface{}) (string, time.Time, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	expiry, _ := claims.GetExpirationTime()
+
 	encodedToken, err := token.SignedString(signingKey)
 	if err != nil {
-		return "", err
+		return "", time.Now(), err
 	}
-	return encodedToken, nil
+
+	return encodedToken, expiry.Time, nil
 }
 
 // Signs a token for the specified user with the specified signing key.
 // This function returns the encoded token in plaintext or an error if signing failed.
-func SignUserToken(user model.User, signingKey interface{}) (string, error) {
+func SignUserToken(user model.User, signingKey interface{}) (string, time.Time, error) {
 	claims := model.CustomUserClaims{
 		CustomClaims: model.CustomClaims{
 			Usage: model.TokenUsageLogin,
@@ -81,7 +84,7 @@ func SignUserToken(user model.User, signingKey interface{}) (string, error) {
 // The reset token should be sent to the user through a secure channel (such as email)
 // since it grants temporary access to an account without a password.
 // This function returns the encoded token in plaintext or an error if signing failed.
-func SignResetToken(user model.User, signingKey interface{}) (string, error) {
+func SignResetToken(user model.User, signingKey interface{}) (string, time.Time, error) {
 	claims := model.CustomUserClaims{
 		CustomClaims: model.CustomClaims{
 			Usage: model.TokenUsageReset,

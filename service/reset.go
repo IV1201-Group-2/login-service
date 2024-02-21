@@ -21,12 +21,14 @@ func PasswordReset(c echo.Context, db database.Connection, authConfig *echojwt.C
 	// TODO: Verify that Echo checks expiry period
 	token, ok := c.Get("user").(*jwt.Token)
 	if !ok {
+		LogErrorf(c, "Unauthorized attempt: user has no reset token")
 		return model.ErrTokenNotProvided
 	}
 
 	// Check if user provided a reset token
 	claims, _ := token.Claims.(*model.CustomUserClaims)
 	if claims.Usage != model.TokenUsageReset {
+		LogErrorf(c, "Unauthorized attempt: user has no reset token")
 		return model.ErrAlreadyLoggedIn
 	}
 
@@ -41,10 +43,18 @@ func PasswordReset(c echo.Context, db database.Connection, authConfig *echojwt.C
 		return err
 	}
 
+	if claims.User.Username != "" {
+		LogErrorf(c, "User '%s' has reset password", claims.User.Username)
+	} else if claims.User.Email != "" {
+		LogErrorf(c, "User '%s' has reset password", claims.User.Email)
+	}
+
 	// Create a new token valid for auth expiry period
-	newToken, err := SignUserToken(claims.User, authConfig.SigningKey)
+	newToken, expiry, err := SignUserToken(claims.User, authConfig.SigningKey)
 	if err != nil {
 		return err
 	}
+	LogErrorf(c, "Login successful: token expires at %s", expiry.Format("2006-01-02 15:04"))
+
 	return c.JSON(http.StatusOK, model.UserTokenResponse{Token: newToken})
 }

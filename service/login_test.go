@@ -197,7 +197,7 @@ func TestLoginWrongPassword(t *testing.T) {
 func TestAlreadyLoggedIn(t *testing.T) {
 	t.Parallel()
 
-	testToken, _ := service.SignUserToken(model.MockApplicant, []byte("mocksecret"))
+	testToken, _, _ := service.SignUserToken(model.MockApplicant, []byte("mocksecret"))
 
 	res := testRequest(t, "/api/login", map[string]any{
 		"identity": model.MockApplicant.Email,
