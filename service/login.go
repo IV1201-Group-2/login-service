@@ -6,7 +6,6 @@ import (
 
 	"github.com/IV1201-Group-2/login-service/database"
 	"github.com/IV1201-Group-2/login-service/model"
-
 	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
@@ -49,11 +48,10 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 	// Check that user has a valid password in the database
 	if user.Password == "" {
 		// Create a new reset token allowing the user to reset their password
-		token, err, expiry := SignResetToken(*user, authConfig.SigningKey)
+		token, expiry, err := SignResetToken(*user, authConfig.SigningKey)
 		if err != nil {
 			return err
 		}
-
 		LogErrorf(c, "Login failed: user has no password in db")
 		LogErrorf(c, "Handed out reset token that expires at %s", expiry.Format("2006-01-02 15:04"))
 		return model.ErrMissingPassword.WithDetails(model.ResetTokenResponse{ResetToken: token})
@@ -66,12 +64,11 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 	}
 
 	// Create a new token valid for auth expiry period
-	token, err, expiry := SignUserToken(*user, authConfig.SigningKey)
+	token, expiry, err := SignUserToken(*user, authConfig.SigningKey)
 	if err != nil {
 		return err
-	} else {
-		LogErrorf(c, "Login successful: token expires at %s", expiry.Format("2006-01-02 15:04"))
 	}
+	LogErrorf(c, "Login successful: token expires at %s", expiry.Format("2006-01-02 15:04"))
 
 	return c.JSON(http.StatusOK, model.UserTokenResponse{Token: token})
 }

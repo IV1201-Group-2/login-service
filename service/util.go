@@ -14,7 +14,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// Log an error that occured in a handler.
+// Log an error that occurred in a handler.
 func LogErrorf(c echo.Context, format string, args ...any) {
 	c.Logger().Errorf(fmt.Sprintf("[%s] %s", c.RealIP(), format), args...)
 }

@@ -50,12 +50,11 @@ func PasswordReset(c echo.Context, db database.Connection, authConfig *echojwt.C
 	}
 
 	// Create a new token valid for auth expiry period
-	newToken, err, expiry := SignUserToken(claims.User, authConfig.SigningKey)
+	newToken, expiry, err := SignUserToken(claims.User, authConfig.SigningKey)
 	if err != nil {
 		return err
-	} else {
-		LogErrorf(c, "Login successful: token expires at %s", expiry.Format("2006-01-02 15:04"))
 	}
+	LogErrorf(c, "Login successful: token expires at %s", expiry.Format("2006-01-02 15:04"))
 
 	return c.JSON(http.StatusOK, model.UserTokenResponse{Token: newToken})
 }
