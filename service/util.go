@@ -5,6 +5,7 @@ package service
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net"
 	"syscall"
 
@@ -12,6 +13,11 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
+
+// Log an error that occured in a handler.
+func LogErrorf(c echo.Context, format string, args ...any) {
+	c.Logger().Errorf(fmt.Sprintf("[%s] %s", c.RealIP(), format), args...)
+}
 
 // Rewrites errors returned by Echo to follow shared API rules.
 func rewriteEchoErrors(err *echo.HTTPError, c echo.Context) *model.APIError {
@@ -21,7 +27,7 @@ func rewriteEchoErrors(err *echo.HTTPError, c echo.Context) *model.APIError {
 		errors.Is(echo.ErrMethodNotAllowed, err) {
 		result = model.ErrInvalidRoute.WithInternal(err)
 	}
-	c.Logger().Errorf("[%s] Rewrote framework error %d to %s", c.RealIP(), err.Code, result.ErrorType)
+	LogErrorf(c, "Rewrote framework error %d to %s", err.Code, result.ErrorType)
 	return result
 }
 
@@ -34,10 +40,12 @@ func ErrorHandler(err error, c echo.Context) {
 
 	switch {
 	case errors.As(err, &apiErr):
-		c.Logger().Errorf("[%s] Error occurred in handler: %v", c.RealIP(), err)
+		if internalErr := apiErr.Unwrap(); internalErr != nil {
+			LogErrorf(c, "Error occurred in handler: %v", internalErr)
+		}
 		userVisibleErr = apiErr
 	case errors.As(err, &httpErr):
-		c.Logger().Errorf("[%s] Error occurred in framework: %v", c.RealIP(), err)
+		LogErrorf(c, "Error occurred in framework: %v", err)
 		// Special case for some framework errors
 		userVisibleErr = rewriteEchoErrors(httpErr, c)
 	case errors.Is(err, sql.ErrConnDone):
@@ -46,14 +54,14 @@ func ErrorHandler(err error, c echo.Context) {
 	case errors.Is(err, syscall.ECONNREFUSED):
 	case errors.Is(err, syscall.ECONNABORTED):
 	case errors.Is(err, syscall.ECONNRESET):
-		c.Logger().Errorf("[%s] Error occurred in database: %v", c.RealIP(), err)
+		LogErrorf(c, "Error occurred in database: %v", err)
 		userVisibleErr = model.ErrServiceUnavailable.WithInternal(err)
 	default:
-		c.Logger().Errorf("[%s] Recovered from unexpected error: %v", c.RealIP(), err)
+		LogErrorf(c, "Recovered from unexpected error: %v", err)
 	}
 
 	if err := c.JSON(userVisibleErr.StatusCode, userVisibleErr); err != nil {
-		c.Logger().Errorf("[%s] Error occurred in HTTP error handler: %v", c.RealIP(), err)
+		LogErrorf(c, "Error occurred in HTTP error handler: %v", err)
 	}
 }
 
@@ -70,7 +78,7 @@ func NewValidator() *Validator {
 // Validates user data using go-playground/validator.
 func (cv *Validator) Validate(i interface{}) error {
 	if err := cv.validator.Struct(i); err != nil {
-		return model.ErrMissingParameters
+		return model.ErrMissingParameters.WithInternal(err)
 	}
 
 	return nil
