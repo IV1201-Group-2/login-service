@@ -178,9 +178,9 @@ func TestLoginWrongPassword(t *testing.T) {
 	t.Parallel()
 
 	res := testRequest(t, "/api/login", map[string]any{
-		"identity": model.MockApplicant.Email,
+		"identity": "mockuser-applicant@example.com",
 		"password": "wrong",
-		"role":     model.MockApplicant.Role,
+		"role":     model.RoleApplicant,
 	}, map[string]string{})
 	defer res.Body.Close()
 

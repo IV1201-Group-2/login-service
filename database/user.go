@@ -34,6 +34,7 @@ func QueryUser(identity string) (*model.User, error) {
 		return nil, ErrQueryFailed.Wrap(err)
 	}
 
+	// Commit transaction
 	if err = tx.Commit(); err != nil {
 		return nil, ErrQueryFailed.Wrap(err)
 	}
@@ -47,7 +48,7 @@ func QueryUser(identity string) (*model.User, error) {
 }
 
 // Update the password for a user with the specified ID.
-func UpdatePassword(id int, hashedPassword string) error {
+func UpdatePassword(id int, password string) error {
 	// Begin transaction:
 	// If user is spread across multiple tables all writes need to be done at the same time.
 	tx, err := connection.Begin()
@@ -59,17 +60,19 @@ func UpdatePassword(id int, hashedPassword string) error {
 
 	query := sq.StatementBuilder.RunWith(tx).
 		Update("person").
-		Set("password", hashedPassword).
+		Set("password", password).
 		Where(sq.Eq{"person_id": id})
 
 	result, err := query.Exec()
 	if err != nil {
 		return ErrQueryFailed.Wrap(err)
 	}
-	if rows, err := result.RowsAffected(); err != nil || rows != 1 {
+	// If no rows were affected, the user was not found
+	if rows, err := result.RowsAffected(); err != nil || rows == 0 {
 		return ErrUserNotFound.Wrap(err)
 	}
 
+	// Commit transaction
 	if err = tx.Commit(); err != nil {
 		return ErrQueryFailed.Wrap(err)
 	}

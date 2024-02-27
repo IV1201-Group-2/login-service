@@ -13,17 +13,17 @@ type Error struct {
 	Internal error `json:"-"`
 }
 
-// Attaches an internal error to a database error.
-func (d *Error) Wrap(err error) *Error {
-	return &Error{Description: d.Description, Internal: err}
-}
-
 // Describes the database error.
 func (a *Error) Error() string {
 	if a.Internal != nil {
 		return fmt.Sprintf("%s: %v", a.Description, a.Internal)
 	}
 	return a.Description
+}
+
+// Attaches an internal error to a database error.
+func (d *Error) Wrap(err error) *Error {
+	return &Error{Description: d.Description, Internal: err}
 }
 
 // If an error has been wrapped in a.Internal, return the error.

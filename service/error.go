@@ -3,39 +3,27 @@ package service
 import (
 	"errors"
 	"fmt"
-	"net/http"
 )
 
 // Represents an error that occurred in the service layer.
-// API errors can be translated into a JSON object following shared API rules.
 type Error struct {
-	// HTTP status code.
-	StatusCode int `json:"-"`
-	// Error type.
-	ErrorType string `json:"error"`
-	// Error details.
-	Details any `json:"details,omitempty"`
+	// Description of the error for logging.
+	Description string `json:"description"`
 	// Internal wrapped error. Not visible to users.
 	Internal error `json:"-"`
 }
 
-// Attaches detailed user-visible information to an API error.
-// This is intended to give the API consumer more information about where and how it occurred.
-func (a *Error) WithDetails(details any) *Error {
-	return &Error{StatusCode: a.StatusCode, ErrorType: a.ErrorType, Details: details, Internal: a.Internal}
-}
-
-// Attaches an internal error to an API error.
-func (a *Error) Wrap(err error) *Error {
-	return &Error{StatusCode: a.StatusCode, ErrorType: a.ErrorType, Details: a.Details, Internal: err}
-}
-
-// Describes the API error.
+// Describes the service error.
 func (a *Error) Error() string {
 	if a.Internal != nil {
-		return fmt.Sprintf("%s: %v", a.ErrorType, a.Internal)
+		return fmt.Sprintf("%s: %v", a.Description, a.Internal)
 	}
-	return a.ErrorType
+	return a.Description
+}
+
+// Attaches an internal error to a service error.
+func (d *Error) Wrap(err error) *Error {
+	return &Error{Description: d.Description, Internal: err}
 }
 
 // If an error has been wrapped in a.Internal, return the error.
@@ -43,38 +31,22 @@ func (a *Error) Unwrap() error {
 	return a.Internal
 }
 
-// Service errors are considered equivalent if their error type is equivalent.
+// Service errors are considered equivalent if their description is equivalent.
 func (a *Error) Is(target error) bool {
-	var apiError *Error
-	if errors.As(target, &apiError) {
-		return a.ErrorType == apiError.ErrorType
+	var databaseErr *Error
+	if errors.As(target, &databaseErr) {
+		return a.Description == databaseErr.Description
 	}
 	return false
 }
 
 var (
-	// ErrUnknown represents an unknown error.
-	ErrUnknown = &Error{http.StatusInternalServerError, "UNKNOWN", nil, nil}
-	// ErrServiceUnavailable indicates that an external service such as the database is unavailable.
-	ErrServiceUnavailable = &Error{http.StatusInternalServerError, "SERVICE_UNAVAILABLE", nil, nil}
-
-	// ErrMissingParameters indicates that the user did not provide identity, password or desired role.
-	ErrMissingParameters = &Error{http.StatusBadRequest, "MISSING_PARAMETERS", nil, nil}
-	// ErrMissingParameters indicates that the user does not have a password in the database.
-	ErrMissingPassword = &Error{http.StatusNotFound, "MISSING_PASSWORD", nil, nil}
-
-	// ErrWrongIdentity indicates that no account was found with that specific username or email address.
-	ErrWrongIdentity = &Error{http.StatusUnauthorized, "WRONG_IDENTITY", nil, nil}
-	// ErrWrongPassword indicates that an account was found but the wrong password was provided.
-	ErrWrongPassword = &Error{http.StatusUnauthorized, "WRONG_PASSWORD", nil, nil}
-
-	// ErrAlreadyLoggedIn indicates that the user is already logged in (JWT token was provided).
-	ErrAlreadyLoggedIn = &Error{http.StatusBadRequest, "ALREADY_LOGGED_IN", nil, nil}
-	// ErrTokenNotProvided indicates that the user did not provide a token for reset API.
-	ErrTokenNotProvided = &Error{http.StatusUnauthorized, "TOKEN_NOT_PROVIDED", nil, nil} // #nosec G101
-	// ErrTokenInvalid indicates that the user provided an invalid or expired token.
-	ErrTokenInvalid = &Error{http.StatusUnauthorized, "INVALID_TOKEN", nil, nil}
-
-	// ErrInvalidRoute indicates that the user tried to access an invalid route.
-	ErrInvalidRoute = &Error{http.StatusNotFound, "INVALID_ROUTE", nil, nil}
+	// ErrWrongIdentity indicates that authentication failed because account with that identity was not found.
+	ErrWrongIdentity = &Error{"wrong identity", nil}
+	// ErrWrongPassword indicates that authentication failed because the wrong password was provided.
+	ErrWrongPassword = &Error{"wrong password", nil}
+	// ErrMissingPassword indicates that authentication failed because the user has no password in the database.
+	ErrMissingPassword = &Error{"missing password", nil}
+	// ErrPasswordTooLong indicates that password update failed because Bcrypt returned an error.
+	ErrBcryptError = &Error{"bcrypt error", nil}
 )
