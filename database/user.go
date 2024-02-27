@@ -1,5 +1,3 @@
-// The package database implements functions for connecting to the database
-// and querying information about users.
 package database
 
 import (
@@ -12,16 +10,6 @@ import (
 	// Imports Postgres driver.
 	_ "github.com/lib/pq"
 )
-
-// ErrConnectionFailed indicates that connection to the database failed.
-var ErrConnectionFailed = errors.New("connection failed")
-
-// ErrConnectionMockMode indicates that a mock database is being used.
-// This is a warning and can be ignored if the user is informed.
-var ErrConnectionMockMode = errors.New("database is in mock mode")
-
-// ErrUserNotFound indicates that a user with the specificed identity couldn't be found.
-var ErrUserNotFound = errors.New("user not found in db")
 
 // Represents a connection to a database.
 // The connection should be closed when it's no longer being used.

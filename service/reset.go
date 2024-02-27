@@ -22,20 +22,20 @@ func PasswordReset(c echo.Context, db database.Connection, authConfig *echojwt.C
 	token, ok := c.Get("user").(*jwt.Token)
 	if !ok {
 		LogErrorf(c, "Unauthorized attempt: user has no reset token")
-		return model.ErrTokenNotProvided
+		return ErrTokenNotProvided
 	}
 
 	// Check if user provided a reset token
 	claims, _ := token.Claims.(*model.CustomUserClaims)
 	if claims.Usage != model.TokenUsageReset {
 		LogErrorf(c, "Unauthorized attempt: user has no reset token")
-		return model.ErrAlreadyLoggedIn
+		return ErrAlreadyLoggedIn
 	}
 
 	var params resetParams
 	// Check that all parameters are present
 	if err := errors.Join(c.Bind(&params), c.Validate(&params)); err != nil {
-		return model.ErrMissingParameters
+		return ErrMissingParameters
 	}
 
 	err := db.UpdatePassword(claims.User.ID, params.Password)

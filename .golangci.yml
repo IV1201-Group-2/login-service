@@ -25,7 +25,6 @@ linters:
     - nlreturn
     - tagliatelle
     - varnamelen
-    - wrapcheck
     - wsl
 
 # linters-settings:

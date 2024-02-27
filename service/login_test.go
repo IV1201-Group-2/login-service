@@ -35,7 +35,7 @@ func newMockServer() *echo.Echo {
 	return srv
 }
 
-func mockKeyFunc(_ *jwt.Token) (interface{}, error) {
+func mockKeyFunc(_ *jwt.Token) (any, error) {
 	return []byte("mocksecret"), nil
 }
 
@@ -113,7 +113,7 @@ func TestMissingParameters(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-	obj := model.APIError{}
+	obj := service.Error{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
@@ -146,7 +146,7 @@ func TestLoginMissingUser(t *testing.T) {
 
 	require.Equal(t, http.StatusUnauthorized, res.StatusCode)
 
-	obj := model.APIError{}
+	obj := service.Error{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
@@ -166,7 +166,7 @@ func TestLoginWrongRole(t *testing.T) {
 
 	require.Equal(t, http.StatusUnauthorized, res.StatusCode)
 
-	obj := model.APIError{}
+	obj := service.Error{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
@@ -186,7 +186,7 @@ func TestLoginWrongPassword(t *testing.T) {
 
 	require.Equal(t, http.StatusUnauthorized, res.StatusCode)
 
-	obj := model.APIError{}
+	obj := service.Error{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
@@ -210,7 +210,7 @@ func TestAlreadyLoggedIn(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-	obj := model.APIError{}
+	obj := service.Error{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
@@ -226,7 +226,7 @@ func TestWrongRoute(t *testing.T) {
 
 	require.Equal(t, http.StatusNotFound, res.StatusCode)
 
-	obj := model.APIError{}
+	obj := service.Error{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))

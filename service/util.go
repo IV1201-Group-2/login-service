@@ -9,7 +9,7 @@ import (
 	"net"
 	"syscall"
 
-	"github.com/IV1201-Group-2/login-service/model"
+	"github.com/IV1201-Group-2/login-service/database"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
@@ -20,12 +20,12 @@ func LogErrorf(c echo.Context, format string, args ...any) {
 }
 
 // Rewrites errors returned by Echo to follow shared API rules.
-func rewriteEchoErrors(err *echo.HTTPError, c echo.Context) *model.APIError {
-	result := model.ErrUnknown.WithInternal(err)
+func rewriteEchoErrors(err *echo.HTTPError, c echo.Context) *Error {
+	result := ErrUnknown.WithInternal(err)
 	if errors.Is(echo.ErrNotFound, err) ||
 		errors.Is(echo.ErrForbidden, err) ||
 		errors.Is(echo.ErrMethodNotAllowed, err) {
-		result = model.ErrInvalidRoute.WithInternal(err)
+		result = ErrInvalidRoute.WithInternal(err)
 	}
 	LogErrorf(c, "Rewrote framework error %d to %s", err.Code, result.ErrorType)
 	return result
@@ -33,9 +33,10 @@ func rewriteEchoErrors(err *echo.HTTPError, c echo.Context) *model.APIError {
 
 // Custom error handler conformant with shared API rules.
 func ErrorHandler(err error, c echo.Context) {
-	userVisibleErr := model.ErrUnknown.WithInternal(err)
+	userVisibleErr := ErrUnknown.WithInternal(err)
 
-	var apiErr *model.APIError
+	var apiErr *Error
+	var databaseErr *database.Error
 	var httpErr *echo.HTTPError
 
 	switch {
@@ -48,14 +49,16 @@ func ErrorHandler(err error, c echo.Context) {
 		LogErrorf(c, "Error occurred in framework: %v", err)
 		// Special case for some framework errors
 		userVisibleErr = rewriteEchoErrors(httpErr, c)
+	// TODO: Remove special cases once database wraps in database.Error
 	case errors.Is(err, sql.ErrConnDone):
 	case errors.Is(err, sql.ErrTxDone):
 	case errors.Is(err, net.ErrClosed):
 	case errors.Is(err, syscall.ECONNREFUSED):
 	case errors.Is(err, syscall.ECONNABORTED):
 	case errors.Is(err, syscall.ECONNRESET):
+	case errors.As(err, &databaseErr):
 		LogErrorf(c, "Error occurred in database: %v", err)
-		userVisibleErr = model.ErrServiceUnavailable.WithInternal(err)
+		userVisibleErr = ErrServiceUnavailable.WithInternal(err)
 	default:
 		LogErrorf(c, "Recovered from unexpected error: %v", err)
 	}
@@ -76,9 +79,9 @@ func NewValidator() *Validator {
 }
 
 // Validates user data using go-playground/validator.
-func (cv *Validator) Validate(i interface{}) error {
+func (cv *Validator) Validate(i any) error {
 	if err := cv.validator.Struct(i); err != nil {
-		return model.ErrMissingParameters.WithInternal(err)
+		return ErrMissingParameters.WithInternal(err)
 	}
 
 	return nil
