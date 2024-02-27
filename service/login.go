@@ -18,7 +18,8 @@ type loginParams struct {
 }
 
 // Login route handler.
-func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) error {
+func Login(c echo.Context) error {
+	authConfig, _ := c.Get("authConfig").(*echojwt.Config)
 	// Check if user incorrectly provided a JWT token
 	_, ok := c.Get("user").(*jwt.Token)
 	if ok {
@@ -31,7 +32,7 @@ func Login(c echo.Context, db database.Connection, authConfig *echojwt.Config) e
 		return ErrMissingParameters
 	}
 
-	user, err := db.QueryUser(params.Identity)
+	user, err := database.QueryUser(params.Identity)
 	if err != nil {
 		if errors.Is(err, database.ErrUserNotFound) {
 			LogErrorf(c, "Unauthorized attempt: user '%s' not found", params.Identity)

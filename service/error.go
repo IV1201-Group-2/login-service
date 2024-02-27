@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -25,7 +26,7 @@ func (a *Error) WithDetails(details any) *Error {
 }
 
 // Attaches an internal error to an API error.
-func (a *Error) WithInternal(err error) *Error {
+func (a *Error) Wrap(err error) *Error {
 	return &Error{StatusCode: a.StatusCode, ErrorType: a.ErrorType, Details: a.Details, Internal: err}
 }
 
@@ -40,6 +41,15 @@ func (a *Error) Error() string {
 // If an error has been wrapped in a.Internal, return the error.
 func (a *Error) Unwrap() error {
 	return a.Internal
+}
+
+// Service errors are considered equivalent if their error type is equivalent.
+func (a *Error) Is(target error) bool {
+	var apiError *Error
+	if errors.As(target, &apiError) {
+		return a.ErrorType == apiError.ErrorType
+	}
+	return false
 }
 
 var (

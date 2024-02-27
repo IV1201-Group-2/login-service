@@ -21,11 +21,11 @@ func LogErrorf(c echo.Context, format string, args ...any) {
 
 // Rewrites errors returned by Echo to follow shared API rules.
 func rewriteEchoErrors(err *echo.HTTPError, c echo.Context) *Error {
-	result := ErrUnknown.WithInternal(err)
+	result := ErrUnknown.Wrap(err)
 	if errors.Is(echo.ErrNotFound, err) ||
 		errors.Is(echo.ErrForbidden, err) ||
 		errors.Is(echo.ErrMethodNotAllowed, err) {
-		result = ErrInvalidRoute.WithInternal(err)
+		result = ErrInvalidRoute.Wrap(err)
 	}
 	LogErrorf(c, "Rewrote framework error %d to %s", err.Code, result.ErrorType)
 	return result
@@ -33,7 +33,7 @@ func rewriteEchoErrors(err *echo.HTTPError, c echo.Context) *Error {
 
 // Custom error handler conformant with shared API rules.
 func ErrorHandler(err error, c echo.Context) {
-	userVisibleErr := ErrUnknown.WithInternal(err)
+	userVisibleErr := ErrUnknown.Wrap(err)
 
 	var apiErr *Error
 	var databaseErr *database.Error
@@ -58,7 +58,7 @@ func ErrorHandler(err error, c echo.Context) {
 	case errors.Is(err, syscall.ECONNRESET):
 	case errors.As(err, &databaseErr):
 		LogErrorf(c, "Error occurred in database: %v", err)
-		userVisibleErr = ErrServiceUnavailable.WithInternal(err)
+		userVisibleErr = ErrServiceUnavailable.Wrap(err)
 	default:
 		LogErrorf(c, "Recovered from unexpected error: %v", err)
 	}
@@ -81,7 +81,7 @@ func NewValidator() *Validator {
 // Validates user data using go-playground/validator.
 func (cv *Validator) Validate(i any) error {
 	if err := cv.validator.Struct(i); err != nil {
-		return ErrMissingParameters.WithInternal(err)
+		return ErrMissingParameters.Wrap(err)
 	}
 
 	return nil

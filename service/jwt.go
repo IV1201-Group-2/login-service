@@ -23,7 +23,7 @@ func errorHandlerFunc(_ echo.Context, err error) error {
 		return nil
 	}
 	if errors.Is(err, echojwt.ErrJWTInvalid) {
-		return ErrTokenInvalid.WithInternal(err)
+		return ErrTokenInvalid.Wrap(err)
 	}
 
 	return err

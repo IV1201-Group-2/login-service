@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -13,7 +14,7 @@ type Error struct {
 }
 
 // Attaches an internal error to a database error.
-func (d *Error) WithInternal(err error) *Error {
+func (d *Error) Wrap(err error) *Error {
 	return &Error{Description: d.Description, Internal: err}
 }
 
@@ -30,14 +31,20 @@ func (a *Error) Unwrap() error {
 	return a.Internal
 }
 
+// Database errors are considered equivalent if their description is equivalent.
+func (a *Error) Is(target error) bool {
+	var databaseErr *Error
+	if errors.As(target, &databaseErr) {
+		return a.Description == databaseErr.Description
+	}
+	return false
+}
+
 var (
 	// ErrConnectionFailed indicates that connection to the database failed.
 	ErrConnectionFailed = &Error{"connection failed", nil}
-
-	// ErrConnectionMockMode indicates that a mock database is being used.
-	// This is a warning and can be ignored if the user is informed.
-	ErrConnectionMockMode = &Error{"database is in mock mode", nil}
-
+	// ErrQueryFailed indicates that an SQL query failed for an unknown reason.
+	ErrQueryFailed = &Error{"query failed", nil}
 	// ErrUserNotFound indicates that a user with the specificed identity couldn't be found.
 	ErrUserNotFound = &Error{"user not found in db", nil}
 )

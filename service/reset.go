@@ -16,7 +16,8 @@ type resetParams struct {
 }
 
 // Password reset route handler.
-func PasswordReset(c echo.Context, db database.Connection, authConfig *echojwt.Config) error {
+func PasswordReset(c echo.Context) error {
+	authConfig, _ := c.Get("authConfig").(*echojwt.Config)
 	// Check if user provided a token
 	// TODO: Verify that Echo checks expiry period
 	token, ok := c.Get("user").(*jwt.Token)
@@ -38,7 +39,7 @@ func PasswordReset(c echo.Context, db database.Connection, authConfig *echojwt.C
 		return ErrMissingParameters
 	}
 
-	err := db.UpdatePassword(claims.User.ID, params.Password)
+	err := database.UpdatePassword(claims.User.ID, params.Password)
 	if err != nil {
 		return err
 	}

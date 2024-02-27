@@ -23,14 +23,14 @@ import (
 // newMockServer creates a new Echo server that uses the mock dataset.
 func newMockServer() *echo.Echo {
 	srv := echo.New()
-	db, _ := database.Connect("mock")
+	_, _ = database.Open("mock", 0)
 
 	srv.HTTPErrorHandler = service.ErrorHandler
 	srv.Validator = service.NewValidator()
 
 	// TODO: Maybe better to pass a new auth config instead...
 	os.Setenv("JWT_SECRET", "mocksecret")
-	service.RegisterRoutes(srv, db)
+	service.RegisterRoutes(srv)
 
 	return srv
 }
