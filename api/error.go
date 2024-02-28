@@ -25,34 +25,34 @@ type Error struct {
 }
 
 // Describes the API error.
-func (a *Error) Error() string {
-	if a.Internal != nil {
-		return fmt.Sprintf("%s: %v", a.ErrorType, a.Internal)
+func (e *Error) Error() string {
+	if e.Internal != nil {
+		return fmt.Sprintf("%s: %v", e.ErrorType, e.Internal)
 	}
-	return a.ErrorType
+	return e.ErrorType
 }
 
 // Attaches detailed user-visible information to an API error.
 // This is intended to give the API consumer more information about where and how it occurred.
-func (a *Error) WithDetails(details any) *Error {
-	return &Error{StatusCode: a.StatusCode, ErrorType: a.ErrorType, Details: details, Internal: a.Internal}
+func (e *Error) WithDetails(details any) *Error {
+	return &Error{StatusCode: e.StatusCode, ErrorType: e.ErrorType, Details: details, Internal: e.Internal}
 }
 
 // Attaches an internal error to an API error.
-func (a *Error) Wrap(err error) *Error {
-	return &Error{StatusCode: a.StatusCode, ErrorType: a.ErrorType, Details: a.Details, Internal: err}
+func (e *Error) Wrap(err error) *Error {
+	return &Error{StatusCode: e.StatusCode, ErrorType: e.ErrorType, Details: e.Details, Internal: err}
 }
 
 // If an error has been wrapped in a.Internal, return the error.
-func (a *Error) Unwrap() error {
-	return a.Internal
+func (e *Error) Unwrap() error {
+	return e.Internal
 }
 
 // Service errors are considered equivalent if their error type is equivalent.
-func (a *Error) Is(target error) bool {
+func (e *Error) Is(target error) bool {
 	var apiError *Error
 	if errors.As(target, &apiError) {
-		return a.ErrorType == apiError.ErrorType
+		return e.ErrorType == apiError.ErrorType
 	}
 	return false
 }
@@ -95,28 +95,28 @@ func rewriteEchoErrors(err *echo.HTTPError, c echo.Context) *Error {
 }
 
 // Custom error handler conformant with shared API rules.
-func ErrorHandler(err error, c echo.Context) {
-	userVisibleErr := ErrUnknown.Wrap(err)
+func ErrorHandler(e error, c echo.Context) {
+	userVisibleErr := ErrUnknown.Wrap(e)
 
 	var apiErr *Error
 	var databaseErr *database.Error
 	var httpErr *echo.HTTPError
 
 	switch {
-	case errors.As(err, &apiErr):
+	case errors.As(e, &apiErr):
 		if internalErr := apiErr.Unwrap(); internalErr != nil {
 			logging.Errorf(c, "Error occurred in handler: %v", internalErr)
 		}
 		userVisibleErr = apiErr
-	case errors.As(err, &httpErr):
-		logging.Errorf(c, "Error occurred in framework: %v", err)
-		// Special case for some framework errors
+	case errors.As(e, &httpErr):
+		logging.Errorf(c, "Error occurred in framework: %v", e)
+		// Special case for framework errors
 		userVisibleErr = rewriteEchoErrors(httpErr, c)
-	case errors.As(err, &databaseErr):
-		logging.Errorf(c, "Error occurred in database: %v", err)
-		userVisibleErr = ErrServiceUnavailable.Wrap(err)
+	case errors.As(e, &databaseErr):
+		logging.Errorf(c, "Error occurred in database: %v", e)
+		userVisibleErr = ErrServiceUnavailable.Wrap(e)
 	default:
-		logging.Errorf(c, "Recovered from unexpected error: %v", err)
+		logging.Errorf(c, "Recovered from unexpected error: %v", e)
 	}
 
 	if err := c.JSON(userVisibleErr.StatusCode, userVisibleErr); err != nil {

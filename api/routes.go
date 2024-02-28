@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/IV1201-Group-2/login-service/database"
 	"github.com/IV1201-Group-2/login-service/logging"
 	"github.com/IV1201-Group-2/login-service/model"
 	"github.com/IV1201-Group-2/login-service/service"
@@ -20,9 +21,7 @@ type loginParams struct {
 }
 
 // Login route handler.
-func Login(c echo.Context) error {
-	authConfig, _ := c.Get("auth").(*echojwt.Config)
-
+func Login(c echo.Context, userRepository *database.UserRepository, auth *echojwt.Config) error {
 	// Check if user incorrectly provided a JWT token
 	_, ok := c.Get("user").(*jwt.Token)
 	if ok {
@@ -35,12 +34,12 @@ func Login(c echo.Context) error {
 		return ErrMissingParameters
 	}
 
-	user, err := service.AuthenticateUser(params.Identity, params.Password, params.Role)
+	user, err := service.AuthenticateUser(userRepository, params.Identity, params.Password, params.Role)
 	if err != nil {
 		switch {
 		case errors.Is(err, service.ErrMissingPassword):
 			// Create a new reset token allowing the user to reset their password
-			token, expiry, err := service.SignResetToken(*user, authConfig.SigningKey)
+			token, expiry, err := service.SignResetToken(*user, auth.SigningKey)
 			if err != nil {
 				return err
 			}
@@ -56,7 +55,7 @@ func Login(c echo.Context) error {
 	}
 
 	// Create a new token valid for the auth expiry period
-	token, expiry, err := service.SignUserToken(*user, authConfig.SigningKey)
+	token, expiry, err := service.SignUserToken(*user, auth.SigningKey)
 	if err != nil {
 		return err
 	}
@@ -70,9 +69,7 @@ type resetParams struct {
 }
 
 // Password reset route handler.
-func PasswordReset(c echo.Context) error {
-	authConfig, _ := c.Get("authConfig").(*echojwt.Config)
-
+func PasswordReset(c echo.Context, userRepository *database.UserRepository, auth *echojwt.Config) error {
 	// Check if user provided a token
 	token, ok := c.Get("user").(*jwt.Token)
 	if !ok {
@@ -87,7 +84,7 @@ func PasswordReset(c echo.Context) error {
 	}
 
 	claims, _ := token.Claims.(*model.UserClaims)
-	err := service.UpdatePassword(*claims, params.Password)
+	err := service.UpdatePassword(userRepository, *claims, params.Password)
 	if err != nil {
 		return err
 	}
@@ -99,7 +96,7 @@ func PasswordReset(c echo.Context) error {
 	}
 
 	// Create a new token valid for the auth expiry period
-	newToken, expiry, err := service.SignUserToken(claims.User, authConfig.SigningKey)
+	newToken, expiry, err := service.SignUserToken(claims.User, auth.SigningKey)
 	if err != nil {
 		return err
 	}

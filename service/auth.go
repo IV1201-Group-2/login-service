@@ -27,9 +27,9 @@ func HashPassword(plaintext string) (string, error) {
 }
 
 // Authenticate a user with the specified identity, password and optionally role.
-func AuthenticateUser(identity string, password string, role *model.Role) (*model.User, error) {
+func AuthenticateUser(repository *database.UserRepository, identity string, password string, role *model.Role) (*model.User, error) {
 	// Query the database for a user with the specified username or email.
-	user, err := database.QueryUser(identity)
+	user, err := repository.Query(identity)
 	if err != nil {
 		if errors.Is(err, database.ErrUserNotFound) {
 			return nil, ErrWrongIdentity
@@ -54,7 +54,7 @@ func AuthenticateUser(identity string, password string, role *model.Role) (*mode
 }
 
 // Update the password of a user in the database.
-func UpdatePassword(token model.UserClaims, password string) error {
+func UpdatePassword(repository *database.UserRepository, token model.UserClaims, password string) error {
 	// Check if user provided a reset token
 	if token.Usage != model.TokenUsageReset {
 		return ErrWrongIdentity
@@ -65,5 +65,5 @@ func UpdatePassword(token model.UserClaims, password string) error {
 		return err
 	}
 
-	return database.UpdatePassword(token.User.ID, hashed)
+	return repository.UpdatePassword(token.User.ID, hashed)
 }

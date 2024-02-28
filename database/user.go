@@ -8,14 +8,23 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
-// Query the database for a user with the specified identity.
-func QueryUser(identity string) (*model.User, error) {
+type UserRepository struct {
+	conn *sql.DB
+}
+
+// NewUserRepository creates a new repository from a database connection.
+func NewUserRepository(conn *sql.DB) *UserRepository {
+	return &UserRepository{conn}
+}
+
+// Query the repository for a user with the specified identity.
+func (u *UserRepository) Query(identity string) (*model.User, error) {
 	var name, email, password sql.NullString
 	var user model.User
 
 	// Begin transaction:
 	// If user is spread across multiple tables all reads need to be done at the same time.
-	tx, err := connection.Begin()
+	tx, err := u.conn.Begin()
 	if err != nil {
 		return nil, ErrQueryFailed.Wrap(err)
 	}
@@ -47,11 +56,11 @@ func QueryUser(identity string) (*model.User, error) {
 	return &user, nil
 }
 
-// Update the password for a user with the specified ID.
-func UpdatePassword(id int, password string) error {
+// Update the password for a user in the repository with the specified ID.
+func (u *UserRepository) UpdatePassword(id int, password string) error {
 	// Begin transaction:
 	// If user is spread across multiple tables all writes need to be done at the same time.
-	tx, err := connection.Begin()
+	tx, err := u.conn.Begin()
 	if err != nil {
 		return ErrQueryFailed.Wrap(err)
 	}

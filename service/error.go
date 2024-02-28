@@ -14,28 +14,28 @@ type Error struct {
 }
 
 // Describes the service error.
-func (a *Error) Error() string {
-	if a.Internal != nil {
-		return fmt.Sprintf("%s: %v", a.Description, a.Internal)
+func (e *Error) Error() string {
+	if e.Internal != nil {
+		return fmt.Sprintf("%s: %v", e.Description, e.Internal)
 	}
-	return a.Description
+	return e.Description
 }
 
 // Attaches an internal error to a service error.
-func (d *Error) Wrap(err error) *Error {
-	return &Error{Description: d.Description, Internal: err}
+func (e *Error) Wrap(err error) *Error {
+	return &Error{Description: e.Description, Internal: err}
 }
 
 // If an error has been wrapped in a.Internal, return the error.
-func (a *Error) Unwrap() error {
-	return a.Internal
+func (e *Error) Unwrap() error {
+	return e.Internal
 }
 
 // Service errors are considered equivalent if their description is equivalent.
-func (a *Error) Is(target error) bool {
+func (e *Error) Is(target error) bool {
 	var databaseErr *Error
 	if errors.As(target, &databaseErr) {
-		return a.Description == databaseErr.Description
+		return e.Description == databaseErr.Description
 	}
 	return false
 }
