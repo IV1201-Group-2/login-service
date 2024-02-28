@@ -31,7 +31,7 @@ func (u *UserRepository) Query(identity string) (*model.User, error) {
 	// Transaction will be automatically rolled back if the function returns an error.
 	defer tx.Rollback()
 
-	query := sq.StatementBuilder.RunWith(tx).
+	query := stmtBuilder.RunWith(tx).
 		Select("person_id", "username", "email", "password", "role_id").
 		From("person").
 		Where(sq.Or{sq.Eq{"username": identity}, sq.Eq{"email": identity}})
@@ -67,7 +67,7 @@ func (u *UserRepository) UpdatePassword(id int, password string) error {
 	// Transaction will be automatically rolled back if the function returns an error.
 	defer tx.Rollback()
 
-	query := sq.StatementBuilder.RunWith(tx).
+	query := stmtBuilder.RunWith(tx).
 		Update("person").
 		Set("password", password).
 		Where(sq.Eq{"person_id": id})

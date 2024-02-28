@@ -16,6 +16,7 @@ const TimestampFormat = "2006-01-02 15:04"
 var Logger = logrus.Logger{
 	Out: os.Stdout,
 	Formatter: &logrus.TextFormatter{
+		ForceColors:               true,
 		EnvironmentOverrideColors: true,
 		FullTimestamp:             true,
 		TimestampFormat:           TimestampFormat,

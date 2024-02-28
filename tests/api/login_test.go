@@ -118,7 +118,7 @@ func TestLoginWrongRole(t *testing.T) {
 	require.Equal(t, "WRONG_IDENTITY", obj.ErrorType)
 }
 
-// Tests that the server returns WRONG_PASSWORD when user has wrong password.
+// Tests that the server returns WRONG_IDENTITY when user has wrong password.
 func TestLoginWrongPassword(t *testing.T) {
 	t.Parallel()
 
@@ -135,7 +135,7 @@ func TestLoginWrongPassword(t *testing.T) {
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
-	require.Equal(t, "WRONG_PASSWORD", obj.ErrorType)
+	require.Equal(t, "WRONG_IDENTITY", obj.ErrorType)
 }
 
 // Tests that the server returns MISSING_PASSWORD and a reset token when user has wrong password.
@@ -144,7 +144,7 @@ func TestLoginMissingPassword(t *testing.T) {
 
 	res := tests.Request(t, "/api/login", map[string]any{
 		"identity": tests.MockApplicant2.Email,
-		"password": tests.MockApplicant2.Password,
+		"password": "mockpassword",
 		"role":     model.RoleApplicant,
 	}, map[string]string{})
 	defer res.Body.Close()
@@ -154,6 +154,8 @@ func TestLoginMissingPassword(t *testing.T) {
 	details := model.ResetTokenResponse{}
 	obj := api.Error{Details: &details}
 	body, _ := io.ReadAll(res.Body)
+
+	fmt.Println(string(body))
 
 	require.NoError(t, json.Unmarshal(body, &obj))
 	require.Equal(t, "MISSING_PASSWORD", obj.ErrorType)

@@ -45,7 +45,7 @@ func Login(c echo.Context, userRepository *database.UserRepository, auth *echojw
 			}
 			logging.Errorf(c, "Login failed: user has no password in db")
 			logging.Infof(c, "Handed out reset token that expires at %s", expiry.Format(logging.TimestampFormat))
-			return ErrMissingPassword.WithDetails(token)
+			return ErrMissingPassword.WithDetails(model.ResetTokenResponse{Token: token})
 		case errors.Is(err, service.ErrWrongIdentity):
 			logging.Errorf(c, "Unauthorized attempt: user '%s' not found", params.Identity)
 		case errors.Is(err, service.ErrWrongPassword):

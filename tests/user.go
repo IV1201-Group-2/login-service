@@ -27,8 +27,8 @@ var MockApplicant2 = model.User{
 	Role: model.RoleApplicant,
 
 	Username: "",
-	Email:    "mockuser-applicant@example.com",
-	Password: MockPasswordBcrypt, // password
+	Email:    "mockuser-applicant2@example.com",
+	Password: "",
 }
 
 // MockRecruiter is an example user with role "recruiter".

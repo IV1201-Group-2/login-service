@@ -39,15 +39,15 @@ func AuthenticateUser(repository *database.UserRepository, identity string, pass
 
 	// If a role was provided, we want to make sure the user matches expectations.
 	if role != nil && *role != user.Role {
-		return nil, ErrWrongIdentity
+		return user, ErrWrongIdentity
 	}
 	// Check that user has a valid password in the database
 	if user.Password == "" {
-		return nil, ErrMissingPassword
+		return user, ErrMissingPassword
 	}
 	// Check that the correct password was provided
 	if !ComparePassword(password, user.Password) {
-		return nil, ErrWrongPassword
+		return user, ErrWrongPassword
 	}
 
 	return user, nil

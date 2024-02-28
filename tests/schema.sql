@@ -150,8 +150,8 @@ ALTER TABLE ONLY person
     ADD CONSTRAINT person_role_id_fkey FOREIGN KEY (role_id) REFERENCES role(role_id);
 
 -- Applicant with password (login: mockuser-applicant@example.com, password)
-INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (1, 'Mock', 'Applicant', '200001011111', 'mockuser-applicant@example.com', '$2a$10$c4WCXRkTtYb3fJ7Wpnjok.nhrEcFyxqpJ/mjfAjBDzqW1IWT6EjVi', 2, '');
+INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (0, 'Mock', 'Applicant', '200001011111', 'mockuser-applicant@example.com', '$2a$10$c4WCXRkTtYb3fJ7Wpnjok.nhrEcFyxqpJ/mjfAjBDzqW1IWT6EjVi', 2, '');
 -- Applicant without password (login: mockuser-applicant2@example.com)
-INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (2, 'Mock', 'Applicant 2', '200001012222', 'mockuser-applicant2@example.com', '', 2, '');
+INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (1, 'Mock', 'Applicant 2', '200001012222', 'mockuser-applicant2@example.com', '', 2, '');
 -- Recruiter (login: mockuser_recruiter, password)
-INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (3, 'Mock', 'Recruiter', '200001013333', '', '$2a$10$c4WCXRkTtYb3fJ7Wpnjok.nhrEcFyxqpJ/mjfAjBDzqW1IWT6EjVi', 1, 'mockuser_recruiter');
+INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (2, 'Mock', 'Recruiter', '200001013333', '', '$2a$10$c4WCXRkTtYb3fJ7Wpnjok.nhrEcFyxqpJ/mjfAjBDzqW1IWT6EjVi', 1, 'mockuser_recruiter');
