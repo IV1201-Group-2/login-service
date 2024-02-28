@@ -7,7 +7,7 @@ import (
 
 	"github.com/IV1201-Group-2/login-service/database"
 	"github.com/IV1201-Group-2/login-service/logging"
-
+	"github.com/IV1201-Group-2/login-service/service"
 	"github.com/labstack/echo/v4"
 )
 
@@ -98,22 +98,26 @@ func rewriteEchoErrors(err *echo.HTTPError, c echo.Context) *Error {
 func ErrorHandler(e error, c echo.Context) {
 	userVisibleErr := ErrUnknown.Wrap(e)
 
-	var apiErr *Error
-	var databaseErr *database.Error
 	var httpErr *echo.HTTPError
+	var apiErr *Error
+	var serviceError *service.Error
+	var databaseErr *database.Error
 
 	switch {
+	case errors.As(e, &httpErr):
+		logging.Errorf(c, "Error occurred in framework: %v", e)
+		// Special case for framework errors
+		userVisibleErr = rewriteEchoErrors(httpErr, c)
 	case errors.As(e, &apiErr):
 		if internalErr := apiErr.Unwrap(); internalErr != nil {
 			logging.Errorf(c, "Error occurred in handler: %v", internalErr)
 		}
 		userVisibleErr = apiErr
-	case errors.As(e, &httpErr):
-		logging.Errorf(c, "Error occurred in framework: %v", e)
-		// Special case for framework errors
-		userVisibleErr = rewriteEchoErrors(httpErr, c)
+	case errors.As(e, &serviceError):
+		logging.Errorf(c, "Error occurred in service layer: %v", e)
+		userVisibleErr = ErrUnknown.Wrap(e)
 	case errors.As(e, &databaseErr):
-		logging.Errorf(c, "Error occurred in database: %v", e)
+		logging.Errorf(c, "Error occurred in database layer: %v", e)
 		userVisibleErr = ErrServiceUnavailable.Wrap(e)
 	default:
 		logging.Errorf(c, "Recovered from unexpected error: %v", e)

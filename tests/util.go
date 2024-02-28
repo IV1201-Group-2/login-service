@@ -5,9 +5,8 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -21,7 +20,6 @@ import (
 	"github.com/IV1201-Group-2/login-service/logging"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
-
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -37,10 +35,6 @@ var useJSON = os.Getenv("TEST_JSON") == "1"
 // Set up an appropriate environment for testing.
 // If this function succeeds, it returns a cleanup function.
 func SetupEnvironment() (func() error, error) {
-	if testDB != nil {
-		return nil, errors.New("environment already set up")
-	}
-
 	// Set up a Postgres container with our test schema
 	// https://testcontainers.com/guides/getting-started-with-testcontainers-for-go
 	pgContainer, err := postgres.RunContainer(context.Background(),
@@ -67,7 +61,7 @@ func SetupEnvironment() (func() error, error) {
 	}
 
 	os.Setenv("JWT_SECRET", MockSecret)
-	logging.Logger.SetOutput(ioutil.Discard)
+	logging.Logger.SetOutput(io.Discard)
 
 	return func() error {
 		if testDB != nil {

@@ -47,6 +47,8 @@ var (
 	ErrWrongPassword = &Error{"wrong password", nil}
 	// ErrMissingPassword indicates that authentication failed because the user has no password in the database.
 	ErrMissingPassword = &Error{"missing password", nil}
-	// ErrPasswordTooLong indicates that password update failed because Bcrypt returned an error.
+	// ErrBcryptError indicates that password update failed because Bcrypt returned an error.
 	ErrBcryptError = &Error{"bcrypt error", nil}
+	// ErrJWTError indicates that authentication failed because golang-jwt returned an error.
+	ErrJWTError = &Error{"jwt error", nil}
 )

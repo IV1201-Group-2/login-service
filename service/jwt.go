@@ -19,7 +19,7 @@ func signToken(claims jwt.Claims, signingKey any) (string, time.Time, error) {
 
 	encodedToken, err := token.SignedString(signingKey)
 	if err != nil {
-		return "", time.Now(), err
+		return "", time.Now(), ErrJWTError.Wrap(err)
 	}
 
 	return encodedToken, expiry.Time, nil

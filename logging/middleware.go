@@ -12,7 +12,7 @@ func Middleware() echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			start := time.Now()
 			err := next(c)
-			elapsed := time.Now().Sub(start).Milliseconds()
+			elapsed := time.Since(start).Milliseconds()
 
 			Logger.Infof("%s %s %s in %dms",
 				c.Request().Proto,

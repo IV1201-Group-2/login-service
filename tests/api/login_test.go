@@ -155,8 +155,6 @@ func TestLoginMissingPassword(t *testing.T) {
 	obj := api.Error{Details: &details}
 	body, _ := io.ReadAll(res.Body)
 
-	fmt.Println(string(body))
-
 	require.NoError(t, json.Unmarshal(body, &obj))
 	require.Equal(t, "MISSING_PASSWORD", obj.ErrorType)
 
@@ -169,7 +167,6 @@ func TestLoginMissingPassword(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, tests.MockApplicant2.Email, claims.Email)
 	require.Equal(t, "reset", claims.Usage)
-
 }
 
 // Tests that the server returns ALREADY_LOGGED_IN when a JWT token is set.

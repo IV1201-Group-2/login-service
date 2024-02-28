@@ -9,12 +9,11 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
-
 	// Imports Postgres driver.
 	_ "github.com/lib/pq"
 )
 
-// Postgres uses $1, $2, etc for placeholders
+// Postgres uses $1, $2, etc for placeholders.
 var stmtBuilder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 // Opens connection and pings the database.
