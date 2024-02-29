@@ -1,64 +1,25 @@
 package service
 
 import (
-	"errors"
-	"os"
 	"time"
 
 	"github.com/IV1201-Group-2/login-service/model"
 	"github.com/golang-jwt/jwt/v5"
-	echojwt "github.com/labstack/echo-jwt/v4"
-	"github.com/labstack/echo/v4"
 )
 
 // Expire tokens after one hour for security.
-const AuthExpiryPeriod = time.Hour
+const TokenExpiryPeriod = time.Hour
 
 // Expire reset tokens after ten minutes.
-const AuthResetExpiryPeriod = time.Minute * 10
+const TokenResetExpiryPeriod = time.Minute * 10
 
-func errorHandlerFunc(_ echo.Context, err error) error {
-	// Allow requests without a token set
-	if errors.Is(err, echojwt.ErrJWTMissing) {
-		return nil
-	}
-	if errors.Is(err, echojwt.ErrJWTInvalid) {
-		return model.ErrTokenInvalid.WithInternal(err)
-	}
-
-	return err
-}
-
-func newClaimsFunc(_ echo.Context) jwt.Claims {
-	return &model.CustomUserClaims{}
-}
-
-var authConfigTemplate = echojwt.Config{
-	ErrorHandler:           errorHandlerFunc,
-	ContinueOnIgnoredError: true,
-	NewClaimsFunc:          newClaimsFunc,
-}
-
-// ErrNoSecret indicates that the JWT_SECRET environment variable is not set.
-var ErrNoSecret = errors.New("$JWT_SECRET must be set")
-
-// NewAuthConfig creates a new echojwt config from JWT_SECRET.
-func NewAuthConfig() (*echojwt.Config, error) {
-	if secret, ok := os.LookupEnv("JWT_SECRET"); ok {
-		config := authConfigTemplate
-		config.SigningKey = []byte(secret)
-		return &config, nil
-	}
-	return nil, ErrNoSecret
-}
-
-func signToken(claims jwt.Claims, signingKey interface{}) (string, time.Time, error) {
+func signToken(claims jwt.Claims, signingKey any) (string, time.Time, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	expiry, _ := claims.GetExpirationTime()
 
 	encodedToken, err := token.SignedString(signingKey)
 	if err != nil {
-		return "", time.Now(), err
+		return "", time.Now(), ErrJWTError.Wrap(err)
 	}
 
 	return encodedToken, expiry.Time, nil
@@ -66,15 +27,15 @@ func signToken(claims jwt.Claims, signingKey interface{}) (string, time.Time, er
 
 // Signs a token for the specified user with the specified signing key.
 // This function returns the encoded token in plaintext or an error if signing failed.
-func SignUserToken(user model.User, signingKey interface{}) (string, time.Time, error) {
-	claims := model.CustomUserClaims{
+func SignUserToken(user model.User, signingKey any) (string, time.Time, error) {
+	claims := model.UserClaims{
 		CustomClaims: model.CustomClaims{
 			Usage: model.TokenUsageLogin,
 		},
 		User: user,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(AuthExpiryPeriod)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExpiryPeriod)),
 		},
 	}
 	return signToken(claims, signingKey)
@@ -84,15 +45,15 @@ func SignUserToken(user model.User, signingKey interface{}) (string, time.Time, 
 // The reset token should be sent to the user through a secure channel (such as email)
 // since it grants temporary access to an account without a password.
 // This function returns the encoded token in plaintext or an error if signing failed.
-func SignResetToken(user model.User, signingKey interface{}) (string, time.Time, error) {
-	claims := model.CustomUserClaims{
+func SignResetToken(user model.User, signingKey any) (string, time.Time, error) {
+	claims := model.UserClaims{
 		CustomClaims: model.CustomClaims{
 			Usage: model.TokenUsageReset,
 		},
 		User: user,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(AuthResetExpiryPeriod)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenResetExpiryPeriod)),
 		},
 	}
 	return signToken(claims, signingKey)

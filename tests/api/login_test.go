@@ -1,119 +1,63 @@
-package service_test
+package api_test
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-	"net/http/httptest"
-	"net/url"
 	"os"
-	"strings"
 	"testing"
 
-	"github.com/IV1201-Group-2/login-service/database"
+	"github.com/IV1201-Group-2/login-service/api"
 	"github.com/IV1201-Group-2/login-service/model"
 	"github.com/IV1201-Group-2/login-service/service"
+	"github.com/IV1201-Group-2/login-service/tests"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 )
-
-// newMockServer creates a new Echo server that uses the mock dataset.
-func newMockServer() *echo.Echo {
-	srv := echo.New()
-	db, _ := database.Connect("mock")
-
-	srv.HTTPErrorHandler = service.ErrorHandler
-	srv.Validator = service.NewValidator()
-
-	// TODO: Maybe better to pass a new auth config instead...
-	os.Setenv("JWT_SECRET", "mocksecret")
-	service.RegisterRoutes(srv, db)
-
-	return srv
-}
-
-func mockKeyFunc(_ *jwt.Token) (interface{}, error) {
-	return []byte("mocksecret"), nil
-}
-
-var useJSON = os.Getenv("TEST_JSON") == "1"
-
-// Sends a request to mock server and returns response.
-func testRequest(t *testing.T, path string, params map[string]any, headers map[string]string) *http.Response {
-	t.Helper()
-
-	var req *http.Request
-	if useJSON {
-		json, err := json.Marshal(params)
-		require.NoError(t, err)
-		req = httptest.NewRequest(http.MethodPost, path, bytes.NewReader(json))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	} else {
-		formData := url.Values{}
-		for k, v := range params {
-			formData.Set(k, fmt.Sprintf("%v", v))
-		}
-		req = httptest.NewRequest(http.MethodPost, path, strings.NewReader(formData.Encode()))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
-	}
-
-	for k, v := range headers {
-		req.Header.Set(k, v)
-	}
-
-	rec := httptest.NewRecorder()
-
-	srv := newMockServer()
-	srv.ServeHTTP(rec, req)
-
-	return rec.Result()
-}
 
 // Tests that the server returns a valid JWT token when a user logs in.
 func TestLogin(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest(t, "/api/login", map[string]any{
-		"identity": model.MockApplicant.Email,
-		"password": model.MockPassword,
-		"role":     model.MockApplicant.Role,
+	res := tests.Request(t, "/api/login", map[string]any{
+		"identity": tests.MockApplicant.Email,
+		"password": tests.MockPassword,
+		"role":     tests.MockApplicant.Role,
 	}, map[string]string{})
 	defer res.Body.Close()
 
 	require.Equal(t, http.StatusOK, res.StatusCode)
 
-	obj := model.UserTokenResponse{}
+	obj := model.LoginTokenResponse{}
 	body, _ := io.ReadAll(res.Body)
 
 	// Parse the response
 	require.NoError(t, json.Unmarshal(body, &obj))
 	require.NotEqual(t, "", obj.Token, "Response does not contain token")
 
-	claims := model.CustomUserClaims{}
+	claims := model.UserClaims{}
 	// Parse the embedded JWT token
 	_, err := jwt.ParseWithClaims(obj.Token, &claims, mockKeyFunc)
 
 	require.NoError(t, err)
-	require.Equal(t, model.MockApplicant.Email, claims.Email)
-	require.Equal(t, model.MockApplicant.Role, claims.Role)
+	require.Equal(t, tests.MockApplicant.Email, claims.Email)
+	require.Equal(t, tests.MockApplicant.Role, claims.Role)
+	require.Equal(t, "login", claims.Usage)
 }
 
 // Tests that the server returns MISSING_PARAMETERS when API caller is missing required parameters.
 func TestMissingParameters(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest(t, "/api/login", map[string]any{
-		"password": model.MockPassword,
-		"role":     model.MockApplicant.Role,
+	res := tests.Request(t, "/api/login", map[string]any{
+		"password": tests.MockPassword,
+		"role":     tests.MockApplicant.Role,
 	}, map[string]string{})
 	defer res.Body.Close()
 
 	require.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-	obj := model.APIError{}
+	obj := api.Error{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
@@ -124,9 +68,9 @@ func TestMissingParameters(t *testing.T) {
 func TestOptionalParameters(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest(t, "/api/login", map[string]any{
-		"identity": model.MockApplicant.Email,
-		"password": model.MockPassword,
+	res := tests.Request(t, "/api/login", map[string]any{
+		"identity": tests.MockApplicant.Email,
+		"password": tests.MockPassword,
 	}, map[string]string{})
 	defer res.Body.Close()
 
@@ -137,7 +81,7 @@ func TestOptionalParameters(t *testing.T) {
 func TestLoginMissingUser(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest(t, "/api/login", map[string]any{
+	res := tests.Request(t, "/api/login", map[string]any{
 		"identity": "doesnotexist@example.com",
 		"password": "password",
 		"role":     1,
@@ -146,7 +90,7 @@ func TestLoginMissingUser(t *testing.T) {
 
 	require.Equal(t, http.StatusUnauthorized, res.StatusCode)
 
-	obj := model.APIError{}
+	obj := api.Error{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
@@ -157,60 +101,91 @@ func TestLoginMissingUser(t *testing.T) {
 func TestLoginWrongRole(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest(t, "/api/login", map[string]any{
-		"identity": model.MockApplicant.Email,
-		"password": model.MockPassword,
+	res := tests.Request(t, "/api/login", map[string]any{
+		"identity": tests.MockApplicant.Email,
+		"password": tests.MockPassword,
 		"role":     model.RoleRecruiter,
 	}, map[string]string{})
 	defer res.Body.Close()
 
 	require.Equal(t, http.StatusUnauthorized, res.StatusCode)
 
-	obj := model.APIError{}
+	obj := api.Error{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
 	require.Equal(t, "WRONG_IDENTITY", obj.ErrorType)
 }
 
-// Tests that the server returns WRONG_PASSWORD when user has wrong password.
+// Tests that the server returns WRONG_IDENTITY when user has wrong password.
 func TestLoginWrongPassword(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest(t, "/api/login", map[string]any{
-		"identity": model.MockApplicant.Email,
+	res := tests.Request(t, "/api/login", map[string]any{
+		"identity": tests.MockApplicant.Email,
 		"password": "wrong",
-		"role":     model.MockApplicant.Role,
+		"role":     model.RoleApplicant,
 	}, map[string]string{})
 	defer res.Body.Close()
 
 	require.Equal(t, http.StatusUnauthorized, res.StatusCode)
 
-	obj := model.APIError{}
+	obj := api.Error{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
-	require.Equal(t, "WRONG_PASSWORD", obj.ErrorType)
+	require.Equal(t, "WRONG_IDENTITY", obj.ErrorType)
+}
+
+// Tests that the server returns MISSING_PASSWORD and a reset token when user has wrong password.
+func TestLoginMissingPassword(t *testing.T) {
+	t.Parallel()
+
+	res := tests.Request(t, "/api/login", map[string]any{
+		"identity": tests.MockApplicant2.Email,
+		"password": "mockpassword",
+		"role":     model.RoleApplicant,
+	}, map[string]string{})
+	defer res.Body.Close()
+
+	require.Equal(t, http.StatusNotFound, res.StatusCode)
+
+	details := model.ResetTokenResponse{}
+	obj := api.Error{Details: &details}
+	body, _ := io.ReadAll(res.Body)
+
+	require.NoError(t, json.Unmarshal(body, &obj))
+	require.Equal(t, "MISSING_PASSWORD", obj.ErrorType)
+
+	require.NotEqual(t, "", details.Token, "Response does not contain token")
+
+	claims := model.UserClaims{}
+	// Parse the embedded JWT token
+	_, err := jwt.ParseWithClaims(details.Token, &claims, mockKeyFunc)
+
+	require.NoError(t, err)
+	require.Equal(t, tests.MockApplicant2.Email, claims.Email)
+	require.Equal(t, "reset", claims.Usage)
 }
 
 // Tests that the server returns ALREADY_LOGGED_IN when a JWT token is set.
 func TestAlreadyLoggedIn(t *testing.T) {
 	t.Parallel()
 
-	testToken, _, _ := service.SignUserToken(model.MockApplicant, []byte("mocksecret"))
+	testToken, _, _ := service.SignUserToken(tests.MockApplicant, []byte(os.Getenv("JWT_SECRET")))
 
-	res := testRequest(t, "/api/login", map[string]any{
-		"identity": model.MockApplicant.Email,
-		"password": model.MockPassword,
-		"role":     model.MockApplicant.Role,
+	res := tests.Request(t, "/api/login", map[string]any{
+		"identity": tests.MockApplicant.Email,
+		"password": tests.MockPassword,
+		"role":     tests.MockApplicant.Role,
 	}, map[string]string{
-		"Authorization": fmt.Sprintf("Bearer %s", testToken),
+		"Authorization": "Bearer " + testToken,
 	})
 	defer res.Body.Close()
 
 	require.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-	obj := model.APIError{}
+	obj := api.Error{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
@@ -221,16 +196,14 @@ func TestAlreadyLoggedIn(t *testing.T) {
 func TestWrongRoute(t *testing.T) {
 	t.Parallel()
 
-	res := testRequest(t, "/api/wrong", map[string]any{}, map[string]string{})
+	res := tests.Request(t, "/api/wrong", map[string]any{}, map[string]string{})
 	defer res.Body.Close()
 
 	require.Equal(t, http.StatusNotFound, res.StatusCode)
 
-	obj := model.APIError{}
+	obj := api.Error{}
 	body, _ := io.ReadAll(res.Body)
 
 	require.NoError(t, json.Unmarshal(body, &obj))
 	require.Equal(t, "INVALID_ROUTE", obj.ErrorType)
 }
-
-// TODO: Test missing password
