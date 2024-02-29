@@ -2,7 +2,6 @@ package api_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -180,7 +179,7 @@ func TestAlreadyLoggedIn(t *testing.T) {
 		"password": tests.MockPassword,
 		"role":     tests.MockApplicant.Role,
 	}, map[string]string{
-		"Authorization": fmt.Sprintf("Bearer %s", testToken),
+		"Authorization": "Bearer " + testToken,
 	})
 	defer res.Body.Close()
 
