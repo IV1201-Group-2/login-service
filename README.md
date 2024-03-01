@@ -85,7 +85,7 @@ heroku logs --tail -a login-service-my-app
 ```text
 📦
 ├─ .github
-│  └─ workflows    - Contains runners for continous integration
+│  └─ workflows    - Contains runners for continuous integration
 ├─ api             - Contains code for API routing and user input validation
 ├─ database        - Contains code for connecting to the database and querying user information
 ├─ logging         - Contains code that integrates the Echo framework with Logrus
