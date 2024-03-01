@@ -14,7 +14,8 @@ const TimestampFormat = "2006-01-02 15:04"
 
 // Logger is a Logrus instance with a customized configuration.
 var Logger = logrus.Logger{
-	Out: os.Stdout,
+	Out:   os.Stdout,
+	Level: logrus.InfoLevel,
 	Formatter: &logrus.TextFormatter{
 		ForceColors:               true,
 		EnvironmentOverrideColors: true,
@@ -22,7 +23,6 @@ var Logger = logrus.Logger{
 		TimestampFormat:           TimestampFormat,
 		DisableLevelTruncation:    true,
 	},
-	Level: logrus.InfoLevel,
 }
 
 // Log an informational message that occurred in a handler.
@@ -30,12 +30,12 @@ func Infof(c echo.Context, format string, args ...any) {
 	Logger.Infof(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
 }
 
+// Log a warning message that occurred in a handler.
+func Warnf(c echo.Context, format string, args ...any) {
+	Logger.Infof(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
+}
+
 // Log an error that occurred in a handler.
 func Errorf(c echo.Context, format string, args ...any) {
 	Logger.Errorf(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
-}
-
-// Log an error that occurred in a handler and panic.
-func Panicf(c echo.Context, format string, args ...any) {
-	Logger.Panicf(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
 }

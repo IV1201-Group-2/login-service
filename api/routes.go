@@ -43,14 +43,14 @@ func Login(c echo.Context, userRepository *database.UserRepository, auth *echojw
 			if err != nil {
 				return err
 			}
-			logging.Errorf(c, "Login failed: user has no password in db")
+			logging.Warnf(c, "Login failed: user has no password in db")
 			logging.Infof(c, "Handed out reset token that expires at %s", expiry.Format(logging.TimestampFormat))
 			return ErrMissingPassword.WithDetails(model.ResetTokenResponse{Token: token})
 		case errors.Is(err, service.ErrWrongIdentity):
-			logging.Errorf(c, "Unauthorized attempt: user '%s' not found", params.Identity)
+			logging.Warnf(c, "Unauthorized attempt: user '%s' not found", params.Identity)
 			return ErrWrongIdentity
 		case errors.Is(err, service.ErrWrongPassword):
-			logging.Errorf(c, "Unauthorized attempt: wrong password for user '%s'", params.Identity)
+			logging.Warnf(c, "Unauthorized attempt: wrong password for user '%s'", params.Identity)
 			return ErrWrongIdentity
 		}
 
@@ -76,7 +76,7 @@ func PasswordReset(c echo.Context, userRepository *database.UserRepository, auth
 	// Check if user provided a token
 	token, ok := c.Get("user").(*jwt.Token)
 	if !ok {
-		logging.Errorf(c, "Unauthorized attempt: user has no reset token")
+		logging.Warnf(c, "Unauthorized attempt: user has no reset token")
 		return ErrTokenNotProvided
 	}
 

@@ -90,7 +90,7 @@ func rewriteEchoErrors(err *echo.HTTPError, c echo.Context) *Error {
 		errors.Is(echo.ErrMethodNotAllowed, err) {
 		result = ErrInvalidRoute.Wrap(err)
 	}
-	logging.Errorf(c, "Rewrote framework error %d to %s", err.Code, result.ErrorType)
+	logging.Infof(c, "Rewrote framework error %d to %s", err.Code, result.ErrorType)
 	return result
 }
 
