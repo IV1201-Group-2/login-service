@@ -19,6 +19,7 @@ linters:
     - errcheck
     - exhaustruct
     - gochecknoglobals
+    - gochecknoinits
     - goconst
     - godox
     - goerr113
