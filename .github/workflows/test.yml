@@ -23,7 +23,18 @@ jobs:
         run: go get .
       - name: Build
         run: go build -v ./...
-      - name: Run all tests
+      - name: Run tests and build profile
         run: |
-          TEST_JSON=0 go test './tests/...' -count=1 -coverpkg='./...'
-          TEST_JSON=1 go test './tests/...' -count=1 -coverpkg='./...'
+          mkdir -p output
+          go test -coverpkg='./...' -coverprofile=output/profile.cov './tests/...'
+      - name: Coverage for all functions
+        run: |
+          go tool cover -func output/profile.cov -o output/functions.txt
+          go tool cover -html output/profile.cov -o output/coverage.html
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: |
+            output/functions.txt
+            output/coverage.html

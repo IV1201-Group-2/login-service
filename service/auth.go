@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/IV1201-Group-2/login-service/database"
 	"github.com/IV1201-Group-2/login-service/model"
@@ -28,6 +29,13 @@ func HashPassword(plaintext string) (string, error) {
 
 // Authenticate a user with the specified identity, password and optionally role.
 func AuthenticateUser(repository *database.UserRepository, identity string, password string, role *model.Role) (*model.User, error) {
+	identity = strings.TrimSpace(identity)
+	// Guard against information leak by disallowing empty identity.
+	// This can be the case with empty email for recruiter or empty username for applicant.
+	if identity == "" {
+		return nil, ErrWrongIdentity
+	}
+
 	// Query the database for a user with the specified username or email.
 	user, err := repository.Query(identity)
 	if err != nil {
@@ -57,7 +65,7 @@ func AuthenticateUser(repository *database.UserRepository, identity string, pass
 func UpdatePassword(repository *database.UserRepository, token model.UserClaims, password string) error {
 	// Check if user provided a reset token
 	if token.Usage != model.TokenUsageReset {
-		return ErrWrongIdentity
+		return ErrWrongUsage
 	}
 
 	hashed, err := HashPassword(password)

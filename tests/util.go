@@ -5,13 +5,11 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -25,16 +23,17 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-// The tests maintain a single connection to the database.
-var testDB *sql.DB
-
-// If this is set to true, JSON blobs are sent to the server when a test request is executed.
-// If this is set to false, form data is sent to the server when a test request is executed.
-var useJSON = os.Getenv("TEST_JSON") == "1"
+// Database is a single database connection that is maintained for all tests.
+var Database *sql.DB
 
 // Set up an appropriate environment for testing.
 // If this function succeeds, it returns a cleanup function.
 func SetupEnvironment() (func() error, error) {
+	logging.Logger.SetOutput(io.Discard)
+
+	os.Setenv("DATABASE_MAX_CONNECTIONS", "8")
+	os.Setenv("JWT_SECRET", MockSecret)
+
 	// Set up a Postgres container with our test schema
 	// https://testcontainers.com/guides/getting-started-with-testcontainers-for-go
 	pgContainer, err := postgres.RunContainer(context.Background(),
@@ -55,17 +54,14 @@ func SetupEnvironment() (func() error, error) {
 	if err != nil {
 		return nil, err
 	}
-	testDB, err = database.Open(connStr)
+	Database, err = database.Open(connStr)
 	if err != nil {
 		return nil, err
 	}
 
-	os.Setenv("JWT_SECRET", MockSecret)
-	logging.Logger.SetOutput(io.Discard)
-
 	return func() error {
-		if testDB != nil {
-			testDB.Close()
+		if Database != nil {
+			Database.Close()
 		}
 		err := pgContainer.Terminate(context.Background())
 		if err != nil {
@@ -75,33 +71,43 @@ func SetupEnvironment() (func() error, error) {
 	}, nil
 }
 
-// Sends a request to a mock server and returns the response.
-func Request(t *testing.T, path string, params map[string]any, headers map[string]string) *http.Response {
+// Sends a request to an existing server and returns the response.
+func CustomRequest(t *testing.T, srv *echo.Echo, path string, params map[string]any, headers map[string]string) *http.Response {
 	t.Helper()
 
-	var req *http.Request
-	if useJSON {
-		json, err := json.Marshal(params)
-		require.NoError(t, err)
-		req = httptest.NewRequest(http.MethodPost, path, bytes.NewReader(json))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	} else {
-		formData := url.Values{}
-		for k, v := range params {
-			formData.Set(k, fmt.Sprintf("%v", v))
-		}
-		req = httptest.NewRequest(http.MethodPost, path, strings.NewReader(formData.Encode()))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
-	}
+	json, err := json.Marshal(params)
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(json))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
 
 	rec := httptest.NewRecorder()
-
-	srv, _ := api.NewServer(testDB)
 	srv.ServeHTTP(rec, req)
-
 	return rec.Result()
+}
+
+// Sends a request to a mock server and returns the response.
+func Request(t *testing.T, path string, params map[string]any, headers map[string]string) *http.Response {
+	t.Helper()
+
+	srv, _ := api.NewServer(Database)
+	defer srv.Close()
+
+	return CustomRequest(t, srv, path, params, headers)
+}
+
+var letters = []rune("abcdefghijklmnopqrstuvwxyz")
+
+// Generate a random string of a fixed length.
+func RandomStr(length int) string {
+	src := rand.New(rand.NewSource(time.Now().UnixMilli())) // #nosec G404
+	str := make([]rune, length)
+	for i := 0; i < length; i++ {
+		str[i] = letters[src.Intn(len(letters))]
+	}
+	return string(str)
 }
