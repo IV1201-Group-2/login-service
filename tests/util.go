@@ -23,7 +23,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-// The tests maintain a single connection to the database.
+// Database is a single database connection that is maintained for all tests.
 var Database *sql.DB
 
 // Set up an appropriate environment for testing.
@@ -104,7 +104,7 @@ var letters = []rune("abcdefghijklmnopqrstuvwxyz")
 
 // Generate a random string of a fixed length.
 func RandomStr(length int) string {
-	src := rand.New(rand.NewSource(time.Now().UnixMilli()))
+	src := rand.New(rand.NewSource(time.Now().UnixMilli())) // #nosec G404
 	str := make([]rune, length)
 	for i := 0; i < length; i++ {
 		str[i] = letters[src.Intn(len(letters))]

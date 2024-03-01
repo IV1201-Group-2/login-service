@@ -19,8 +19,12 @@ linters:
     - errcheck
     - exhaustruct
     - gochecknoglobals
+    - goconst
     - godox
+    - goerr113
     - gofumpt
+    # Conflicts with gci
+    - goimports
     - gomnd
     - ireturn
     - lll

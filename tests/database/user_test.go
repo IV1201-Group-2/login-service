@@ -19,25 +19,25 @@ func TestQueryUser(t *testing.T) {
 	applicant, err := repository.Query(tests.MockApplicant.Email)
 	require.NoError(t, err)
 
-	require.Equal(t, applicant.ID, tests.MockApplicant.ID)
-	require.Equal(t, applicant.Username, tests.MockApplicant.Username)
-	require.Equal(t, applicant.Email, tests.MockApplicant.Email)
-	require.Equal(t, applicant.Role, tests.MockApplicant.Role)
+	require.Equal(t, tests.MockApplicant.ID, applicant.ID)
+	require.Equal(t, tests.MockApplicant.Username, applicant.Username)
+	require.Equal(t, tests.MockApplicant.Email, applicant.Email)
+	require.Equal(t, tests.MockApplicant.Role, applicant.Role)
 
-	require.Equal(t, applicant.Password, tests.MockPasswordBcrypt)
-	require.NotEqual(t, applicant.Password, tests.MockPassword)
+	require.Equal(t, tests.MockPasswordBcrypt, applicant.Password)
+	require.NotEqual(t, tests.MockPassword, applicant.Password)
 
 	// Query for recruiter
 	recruiter, err := repository.Query(tests.MockRecruiter.Username)
 	require.NoError(t, err)
 
-	require.Equal(t, recruiter.ID, tests.MockRecruiter.ID)
-	require.Equal(t, recruiter.Username, tests.MockRecruiter.Username)
-	require.Equal(t, recruiter.Email, tests.MockRecruiter.Email)
-	require.Equal(t, recruiter.Role, tests.MockRecruiter.Role)
+	require.Equal(t, tests.MockRecruiter.ID, recruiter.ID)
+	require.Equal(t, tests.MockRecruiter.Username, recruiter.Username)
+	require.Equal(t, tests.MockRecruiter.Email, recruiter.Email)
+	require.Equal(t, tests.MockRecruiter.Role, recruiter.Role)
 
-	require.Equal(t, recruiter.Password, tests.MockPasswordBcrypt)
-	require.NotEqual(t, recruiter.Password, tests.MockPassword)
+	require.Equal(t, tests.MockPasswordBcrypt, recruiter.Password)
+	require.NotEqual(t, tests.MockPassword, recruiter.Password)
 
 	// Query for empty identity
 	// NOTE: This should NOT fail with our test data. The service layer guards against information leaks.
@@ -84,5 +84,5 @@ func TestResetPassword(t *testing.T) {
 	// Query for the user again
 	user, err = repository.Query(tests.MockApplicant5.Email)
 	require.NoError(t, err)
-	require.Equal(t, user.Password, newPassword)
+	require.Equal(t, newPassword, user.Password)
 }

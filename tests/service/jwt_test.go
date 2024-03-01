@@ -23,7 +23,7 @@ func TestSignLoginToken(t *testing.T) {
 
 	require.NoError(t, err)
 	require.True(t, decodedToken.Valid)
-	require.Equal(t, claims.ExpiresAt.Time, expiry)
+	require.Equal(t, expiry, claims.ExpiresAt.Time)
 
 	require.Equal(t, tests.MockApplicant.Email, claims.Email)
 	require.Equal(t, tests.MockApplicant.Role, claims.Role)
@@ -42,7 +42,7 @@ func TestSignResetToken(t *testing.T) {
 
 	require.NoError(t, err)
 	require.True(t, decodedToken.Valid)
-	require.Equal(t, claims.ExpiresAt.Time, expiry)
+	require.Equal(t, expiry, claims.ExpiresAt.Time)
 
 	require.Equal(t, tests.MockApplicant.Email, claims.Email)
 	require.Equal(t, tests.MockApplicant.Role, claims.Role)
@@ -61,12 +61,12 @@ func TestSignHS256(t *testing.T) {
 	claims := model.UserClaims{}
 
 	decodedToken1, err := jwt.ParseWithClaims(token1, &claims, mockKeyFunc)
-	require.NoError(t, err, jwt.ErrSignatureInvalid)
-	require.Equal(t, decodedToken1.Method.Alg(), "HS256")
+	require.NotErrorIs(t, err, jwt.ErrSignatureInvalid)
+	require.Equal(t, "HS256", decodedToken1.Method.Alg())
 
 	decodedToken2, err := jwt.ParseWithClaims(token2, &claims, mockKeyFunc)
-	require.NoError(t, err, jwt.ErrSignatureInvalid)
-	require.Equal(t, decodedToken2.Method.Alg(), "HS256")
+	require.NotErrorIs(t, err, jwt.ErrSignatureInvalid)
+	require.Equal(t, "HS256", decodedToken2.Method.Alg())
 }
 
 // Tests that signing a token with the wrong secret fails to verify.

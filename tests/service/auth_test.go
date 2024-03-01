@@ -20,18 +20,18 @@ func TestAuthenticateUser(t *testing.T) {
 	// Authenticate as applicant
 	user, err := service.AuthenticateUser(repository, tests.MockApplicant.Email, tests.MockPassword, &tests.MockApplicant.Role)
 	require.NoError(t, err)
-	require.Equal(t, user.ID, tests.MockApplicant.ID)
-	require.Equal(t, user.Email, tests.MockApplicant.Email)
-	require.Equal(t, user.Username, tests.MockApplicant.Username)
-	require.Equal(t, user.Role, tests.MockApplicant.Role)
+	require.Equal(t, tests.MockApplicant.ID, user.ID)
+	require.Equal(t, tests.MockApplicant.Email, user.Email)
+	require.Equal(t, tests.MockApplicant.Username, user.Username)
+	require.Equal(t, tests.MockApplicant.Role, user.Role)
 
 	// Authenticate as recruiter
 	user, err = service.AuthenticateUser(repository, tests.MockRecruiter.Username, tests.MockPassword, &tests.MockRecruiter.Role)
 	require.NoError(t, err)
-	require.Equal(t, user.ID, tests.MockRecruiter.ID)
-	require.Equal(t, user.Email, tests.MockRecruiter.Email)
-	require.Equal(t, user.Username, tests.MockRecruiter.Username)
-	require.Equal(t, user.Role, tests.MockRecruiter.Role)
+	require.Equal(t, tests.MockRecruiter.ID, user.ID)
+	require.Equal(t, tests.MockRecruiter.Email, user.Email)
+	require.Equal(t, tests.MockRecruiter.Username, user.Username)
+	require.Equal(t, tests.MockRecruiter.Role, user.Role)
 }
 
 // Tests that authenticating with an invalid identity or role doesn't work.

@@ -14,7 +14,7 @@ func (t *testError) Error() string {
 	return ""
 }
 
-// Tests that service.Error behaves as expected
+// Tests that service.Error behaves as expected.
 func TestServiceErrors(t *testing.T) {
 	t.Parallel()
 
@@ -33,14 +33,14 @@ func TestServiceErrors(t *testing.T) {
 	require.NotErrorIs(t, error1, errors.New("test error 4"))
 
 	// errors.Unwrap should return a reference to the wrapped error
-	require.Equal(t, errors.Unwrap(error1), wrappedError1)
-	require.NotEqual(t, errors.Unwrap(error2), wrappedError1)
-	require.Equal(t, errors.Unwrap(error1.Wrap(wrappedError3)), wrappedError3)
+	require.Equal(t, wrappedError1, errors.Unwrap(error1))
+	require.NotEqual(t, wrappedError1, errors.Unwrap(error2))
+	require.Equal(t, wrappedError3, errors.Unwrap(error1.Wrap(wrappedError3)))
 
 	// errors.As should cast to service.Error correctly
 	var serviceError *service.Error
 	var genericError *testError
 
-	require.True(t, errors.As(error1, &serviceError))
+	require.ErrorAs(t, error1, &serviceError)
 	require.False(t, errors.As(error1, &genericError))
 }

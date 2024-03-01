@@ -10,10 +10,9 @@ import (
 
 	"github.com/IV1201-Group-2/login-service/api"
 	"github.com/IV1201-Group-2/login-service/tests"
-	"github.com/stretchr/testify/require"
-
 	// Imports ChaiSQL driver.
 	_ "github.com/chaisql/chai/driver"
+	"github.com/stretchr/testify/require"
 )
 
 type testError struct{}
@@ -22,7 +21,7 @@ func (t *testError) Error() string {
 	return ""
 }
 
-// Tests that api.Error behaves as expected
+// Tests that api.Error behaves as expected.
 func TestAPIErrors(t *testing.T) {
 	t.Parallel()
 
@@ -41,15 +40,15 @@ func TestAPIErrors(t *testing.T) {
 	require.NotErrorIs(t, error3, api.ErrWrongIdentity)
 
 	// errors.Unwrap should return a reference to the wrapped error
-	require.Equal(t, errors.Unwrap(error1), wrappedError1)
-	require.NotEqual(t, errors.Unwrap(error2), wrappedError1)
-	require.Equal(t, errors.Unwrap(error1.Wrap(wrappedError3)), wrappedError3)
+	require.Equal(t, wrappedError1, errors.Unwrap(error1))
+	require.NotEqual(t, wrappedError1, errors.Unwrap(error2))
+	require.Equal(t, wrappedError3, errors.Unwrap(error1.Wrap(wrappedError3)))
 
 	// errors.As should cast to api.Error correctly
 	var apiError *api.Error
 	var genericError *testError
 
-	require.True(t, errors.As(error1, &apiError))
+	require.ErrorAs(t, error1, &apiError)
 	require.False(t, errors.As(error1, &genericError))
 }
 

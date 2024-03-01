@@ -43,7 +43,7 @@ var MockApplicant3 = model.User{
 	Password: "",
 }
 
-// MockApplicant3 is an example user with role "applicant" and a missing password.
+// MockApplicant4 is an example user with role "applicant" and a missing password.
 // This user should be modified during the service tests.
 var MockApplicant4 = model.User{
 	ID:   3,
@@ -54,7 +54,7 @@ var MockApplicant4 = model.User{
 	Password: "",
 }
 
-// MockApplicant4 is an example user with role "applicant" and a missing password.
+// MockApplicant5 is an example user with role "applicant" and a missing password.
 // This user should be modified during the database tests.
 var MockApplicant5 = model.User{
 	ID:   4,
