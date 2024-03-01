@@ -1,3 +1,5 @@
+// The package service implements the core functionality of the microservice,
+// such as authenticating users and signing JWT tokens.
 package service
 
 import (
