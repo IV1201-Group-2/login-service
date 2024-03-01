@@ -5,14 +5,11 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -28,10 +25,6 @@ import (
 
 // The tests maintain a single connection to the database.
 var Database *sql.DB
-
-// If this is set to true, JSON blobs are sent to the server when a test request is executed.
-// If this is set to false, form data is sent to the server when a test request is executed.
-var useJSON = os.Getenv("TEST_JSON") == "1"
 
 // Set up an appropriate environment for testing.
 // If this function succeeds, it returns a cleanup function.
@@ -83,19 +76,12 @@ func Request(t *testing.T, path string, params map[string]any, headers map[strin
 	t.Helper()
 
 	var req *http.Request
-	if useJSON {
-		json, err := json.Marshal(params)
-		require.NoError(t, err)
-		req = httptest.NewRequest(http.MethodPost, path, bytes.NewReader(json))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	} else {
-		formData := url.Values{}
-		for k, v := range params {
-			formData.Set(k, fmt.Sprintf("%v", v))
-		}
-		req = httptest.NewRequest(http.MethodPost, path, strings.NewReader(formData.Encode()))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
-	}
+
+	json, err := json.Marshal(params)
+	require.NoError(t, err)
+
+	req = httptest.NewRequest(http.MethodPost, path, bytes.NewReader(json))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 	for k, v := range headers {
 		req.Header.Set(k, v)

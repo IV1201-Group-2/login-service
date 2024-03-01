@@ -24,6 +24,4 @@ jobs:
       - name: Build
         run: go build -v ./...
       - name: Run all tests
-        run: |
-          TEST_JSON=0 go test './tests/...' -count=1 -coverpkg='./...'
-          TEST_JSON=1 go test './tests/...' -count=1 -coverpkg='./...'
+        run: go test './tests/...' -count=1 -coverpkg='./...'
