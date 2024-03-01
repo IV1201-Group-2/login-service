@@ -15,7 +15,7 @@ const TimestampFormat = "2006-01-02 15:04"
 // Logger is a Logrus instance with a customized configuration.
 var logger *logrus.Logger
 
-func initLogger() {
+func init() {
 	out := os.Stdout
 	if filename, ok := os.LookupEnv("LOG_FILE"); ok {
 		out, _ = os.Open(filename)
@@ -41,16 +41,10 @@ func initLogger() {
 
 // Log a message that occurred in the application.
 func Logf(level logrus.Level, format string, args ...any) {
-	if logger == nil {
-		initLogger()
-	}
 	logger.Logf(level, fmt.Sprintf("[Service] %s\n", format), args...)
 }
 
 // Log a message that occurred in a handler.
 func Logcf(level logrus.Level, c echo.Context, format string, args ...any) {
-	if logger == nil {
-		initLogger()
-	}
 	logger.Logf(level, fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
 }

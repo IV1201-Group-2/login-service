@@ -27,7 +27,6 @@ var Database *sql.DB
 // Set up an appropriate environment for testing.
 // If this function succeeds, it returns a cleanup function.
 func SetupEnvironment() (func() error, error) {
-	os.Setenv("LOG_LEVEL", "error")
 	os.Setenv("DATABASE_MAX_CONNECTIONS", "8")
 	os.Setenv("JWT_SECRET", MockSecret)
 
