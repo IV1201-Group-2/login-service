@@ -13,29 +13,58 @@ import (
 const TimestampFormat = "2006-01-02 15:04"
 
 // Logger is a Logrus instance with a customized configuration.
-var Logger = logrus.Logger{
-	Out:   os.Stdout,
-	Level: logrus.InfoLevel,
-	Formatter: &logrus.TextFormatter{
-		ForceColors:               true,
-		EnvironmentOverrideColors: true,
-		FullTimestamp:             true,
-		TimestampFormat:           TimestampFormat,
-		DisableLevelTruncation:    true,
-	},
+var logger *logrus.Logger
+
+func init() {
+	out := os.Stdout
+	if filename, ok := os.LookupEnv("LOG_FILE"); ok {
+		out, _ = os.Open(filename)
+	}
+
+	level := logrus.InfoLevel
+	if levelstr, ok := os.LookupEnv("LOG_LEVEL"); ok {
+		level, _ = logrus.ParseLevel(levelstr)
+	}
+
+	logger = &logrus.Logger{
+		Out:   out,
+		Level: level,
+		Formatter: &logrus.TextFormatter{
+			ForceColors:               true,
+			EnvironmentOverrideColors: true,
+			FullTimestamp:             true,
+			TimestampFormat:           TimestampFormat,
+			DisableLevelTruncation:    true,
+		},
+	}
+}
+
+// Log an informational message that occurred in the application.
+func Infof(format string, args ...any) {
+	logger.Infof(fmt.Sprintf("[Application] %s\n", format), args...)
+}
+
+// Log a warning message that occurred in the application.
+func Warnf(format string, args ...any) {
+	logger.Infof(fmt.Sprintf("[Application] %s\n", format), args...)
+}
+
+// Log an error that occured in the application.
+func Errorf(format string, args ...any) {
+	logger.Errorf(fmt.Sprintf("[Application] %s\n", format), args...)
 }
 
 // Log an informational message that occurred in a handler.
-func Infof(c echo.Context, format string, args ...any) {
-	Logger.Infof(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
+func Infohf(format string, args ...any) {
+	logger.Infof(fmt.Sprintf("[%s] %s\n", format), args...)
 }
 
 // Log a warning message that occurred in a handler.
-func Warnf(c echo.Context, format string, args ...any) {
-	Logger.Infof(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
+func Warnhf(c echo.Context, format string, args ...any) {
+	logger.Infof(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
 }
 
 // Log an error that occurred in a handler.
-func Errorf(c echo.Context, format string, args ...any) {
-	Logger.Errorf(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
+func Errorhf(c echo.Context, format string, args ...any) {
+	logger.Errorf(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
 }
