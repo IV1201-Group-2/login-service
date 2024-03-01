@@ -13,29 +13,44 @@ import (
 const TimestampFormat = "2006-01-02 15:04"
 
 // Logger is a Logrus instance with a customized configuration.
-var Logger = logrus.Logger{
-	Out: os.Stdout,
-	Formatter: &logrus.TextFormatter{
-		ForceColors:               true,
-		EnvironmentOverrideColors: true,
-		FullTimestamp:             true,
-		TimestampFormat:           TimestampFormat,
-		DisableLevelTruncation:    true,
-	},
-	Level: logrus.InfoLevel,
+var logger *logrus.Logger
+
+func initLogger() {
+	out := os.Stdout
+	if filename, ok := os.LookupEnv("LOG_FILE"); ok {
+		out, _ = os.Open(filename)
+	}
+
+	level := logrus.InfoLevel
+	if levelstr, ok := os.LookupEnv("LOG_LEVEL"); ok {
+		level, _ = logrus.ParseLevel(levelstr)
+	}
+
+	logger = &logrus.Logger{
+		Out:   out,
+		Level: level,
+		Formatter: &logrus.TextFormatter{
+			ForceColors:               true,
+			EnvironmentOverrideColors: true,
+			FullTimestamp:             true,
+			TimestampFormat:           TimestampFormat,
+			DisableLevelTruncation:    true,
+		},
+	}
 }
 
-// Log an informational message that occurred in a handler.
-func Infof(c echo.Context, format string, args ...any) {
-	Logger.Infof(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
+// Log a message that occurred in the application.
+func Logf(level logrus.Level, format string, args ...any) {
+	if logger == nil {
+		initLogger()
+	}
+	logger.Logf(level, fmt.Sprintf("[Service] %s\n", format), args...)
 }
 
-// Log an error that occurred in a handler.
-func Errorf(c echo.Context, format string, args ...any) {
-	Logger.Errorf(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
-}
-
-// Log an error that occurred in a handler and panic.
-func Panicf(c echo.Context, format string, args ...any) {
-	Logger.Panicf(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
+// Log a message that occurred in a handler.
+func Logcf(level logrus.Level, c echo.Context, format string, args ...any) {
+	if logger == nil {
+		initLogger()
+	}
+	logger.Logf(level, fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
 }

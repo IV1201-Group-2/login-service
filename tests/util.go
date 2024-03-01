@@ -5,7 +5,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"io"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -15,7 +14,6 @@ import (
 
 	"github.com/IV1201-Group-2/login-service/api"
 	"github.com/IV1201-Group-2/login-service/database"
-	"github.com/IV1201-Group-2/login-service/logging"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -29,8 +27,7 @@ var Database *sql.DB
 // Set up an appropriate environment for testing.
 // If this function succeeds, it returns a cleanup function.
 func SetupEnvironment() (func() error, error) {
-	logging.Logger.SetOutput(io.Discard)
-
+	os.Setenv("LOG_LEVEL", "error")
 	os.Setenv("DATABASE_MAX_CONNECTIONS", "8")
 	os.Setenv("JWT_SECRET", MockSecret)
 

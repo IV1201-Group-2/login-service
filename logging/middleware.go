@@ -14,7 +14,7 @@ func Middleware() echo.MiddlewareFunc {
 			err := next(c)
 			elapsed := time.Since(start).Milliseconds()
 
-			Logger.Infof("[%s] %s %s %s in %dms",
+			logger.Infof("[%s] %s %s %s in %dms",
 				c.RealIP(),
 				c.Request().Proto,
 				c.Request().Method,

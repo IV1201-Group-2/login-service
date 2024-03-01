@@ -9,6 +9,7 @@ import (
 	"github.com/IV1201-Group-2/login-service/logging"
 	"github.com/IV1201-Group-2/login-service/service"
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 )
 
 // Represents an error that occurred in the API layer.
@@ -90,7 +91,7 @@ func rewriteEchoErrors(err *echo.HTTPError, c echo.Context) *Error {
 		errors.Is(echo.ErrMethodNotAllowed, err) {
 		result = ErrInvalidRoute.Wrap(err)
 	}
-	logging.Errorf(c, "Rewrote framework error %d to %s", err.Code, result.ErrorType)
+	logging.Logcf(logrus.InfoLevel, c, "Rewrote framework error %d to %s", err.Code, result.ErrorType)
 	return result
 }
 
@@ -105,24 +106,24 @@ func ErrorHandler(e error, c echo.Context) {
 
 	switch {
 	case errors.As(e, &httpErr):
-		logging.Errorf(c, "Error occurred in framework: %v", e)
+		logging.Logcf(logrus.ErrorLevel, c, "Error occurred in framework: %v", e)
 		// Special case for framework errors
 		userVisibleErr = rewriteEchoErrors(httpErr, c)
 	case errors.As(e, &apiErr):
 		if internalErr := apiErr.Unwrap(); internalErr != nil {
-			logging.Errorf(c, "Error occurred in handler: %v", internalErr)
+			logging.Logcf(logrus.ErrorLevel, c, "Error occurred in handler: %v", internalErr)
 		}
 		userVisibleErr = apiErr
 	case errors.As(e, &serviceError):
-		logging.Errorf(c, "Error occurred in service layer: %v", e)
+		logging.Logcf(logrus.ErrorLevel, c, "Error occurred in service layer: %v", e)
 	case errors.As(e, &databaseErr):
-		logging.Errorf(c, "Error occurred in database layer: %v", e)
+		logging.Logcf(logrus.ErrorLevel, c, "Error occurred in database layer: %v", e)
 		userVisibleErr = ErrServiceUnavailable.Wrap(e)
 	default:
-		logging.Errorf(c, "Recovered from unexpected error: %v", e)
+		logging.Logcf(logrus.ErrorLevel, c, "Recovered from unexpected error: %v", e)
 	}
 
 	if err := c.JSON(userVisibleErr.StatusCode, userVisibleErr); err != nil {
-		logging.Errorf(c, "Error occurred in HTTP error handler: %v", err)
+		logging.Logcf(logrus.ErrorLevel, c, "Error occurred in HTTP error handler: %v", err)
 	}
 }
