@@ -1,4 +1,4 @@
-// The package api is responsible for translating requests and responses for presentation to the user.
+// The package api is responsible for handling requests and validating user input
 package api
 
 import (
