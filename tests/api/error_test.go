@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Tests that api.Error.Is and api.Error.Unwrap behaves as expected
+// Tests that api.Error behaves as expected
 func TestAPIErrors(t *testing.T) {
 	t.Parallel()
 

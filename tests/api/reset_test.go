@@ -20,7 +20,7 @@ import (
 func TestPasswordReset(t *testing.T) {
 	t.Parallel()
 
-	repo := database.NewUserRepository(tests.Database)
+	repository := database.NewUserRepository(tests.Database)
 
 	// Generate a new random password every time the test is run.
 	newPassword := tests.RandomStr(16)
@@ -28,7 +28,7 @@ func TestPasswordReset(t *testing.T) {
 	resetToken, _, _ := service.SignResetToken(tests.MockApplicant3, []byte(os.Getenv("JWT_SECRET")))
 
 	// Go down into service layer and make sure we can't authenticate as this user before reset
-	_, err := service.AuthenticateUser(repo, tests.MockApplicant3.Email, newPassword, nil)
+	_, err := service.AuthenticateUser(repository, tests.MockApplicant3.Email, newPassword, nil)
 	require.ErrorIs(t, err, service.ErrMissingPassword)
 
 	// Send the request
@@ -58,7 +58,7 @@ func TestPasswordReset(t *testing.T) {
 	require.Equal(t, "login", claims.Usage)
 
 	// Go down into service layer again and make sure we can authenticate as this user after reset
-	_, err = service.AuthenticateUser(repo, tests.MockApplicant3.Email, newPassword, nil)
+	_, err = service.AuthenticateUser(repository, tests.MockApplicant3.Email, newPassword, nil)
 	require.NoError(t, err)
 }
 

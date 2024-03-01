@@ -155,5 +155,7 @@ INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (0, 'Mock', 'Applicant', '2000
 INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (1, 'Mock', 'Applicant 2', '200001012222', 'mockuser-applicant2@example.com', '', 2, '');
 -- Applicant without password (login: mockuser-applicant3@example.com)
 INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (2, 'Mock', 'Applicant 3', '200001013333', 'mockuser-applicant3@example.com', '', 2, '');
+-- Applicant without password (login: mockuser-applicant4@example.com)
+INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (3, 'Mock', 'Applicant 4', '200001014444', 'mockuser-applicant4@example.com', '', 2, '');
 -- Recruiter (login: mockuser_recruiter, password)
-INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (3, 'Mock', 'Recruiter', '200001014444', '', '$2a$10$c4WCXRkTtYb3fJ7Wpnjok.nhrEcFyxqpJ/mjfAjBDzqW1IWT6EjVi', 1, 'mockuser_recruiter');
+INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (4, 'Mock', 'Recruiter', '200001015555', '', '$2a$10$c4WCXRkTtYb3fJ7Wpnjok.nhrEcFyxqpJ/mjfAjBDzqW1IWT6EjVi', 1, 'mockuser_recruiter');

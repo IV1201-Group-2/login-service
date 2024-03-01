@@ -36,6 +36,11 @@ var useJSON = os.Getenv("TEST_JSON") == "1"
 // Set up an appropriate environment for testing.
 // If this function succeeds, it returns a cleanup function.
 func SetupEnvironment() (func() error, error) {
+	logging.Logger.SetOutput(io.Discard)
+
+	os.Setenv("DATABASE_MAX_CONNECTIONS", "8")
+	os.Setenv("JWT_SECRET", MockSecret)
+
 	// Set up a Postgres container with our test schema
 	// https://testcontainers.com/guides/getting-started-with-testcontainers-for-go
 	pgContainer, err := postgres.RunContainer(context.Background(),
@@ -60,9 +65,6 @@ func SetupEnvironment() (func() error, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	os.Setenv("JWT_SECRET", MockSecret)
-	logging.Logger.SetOutput(io.Discard)
 
 	return func() error {
 		if Database != nil {
