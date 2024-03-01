@@ -40,8 +40,12 @@ func TestAuthenticateWrongIdentity(t *testing.T) {
 
 	repository := database.NewUserRepository(tests.Database)
 
+	// Authenticate using empty identity
+	_, err := service.AuthenticateUser(repository, "", tests.MockPassword, &tests.MockApplicant.Role)
+	require.ErrorIs(t, err, service.ErrWrongIdentity)
+
 	// Authenticate using the wrong identity
-	_, err := service.AuthenticateUser(repository, "wrong", tests.MockPassword, &tests.MockApplicant.Role)
+	_, err = service.AuthenticateUser(repository, "wrong", tests.MockPassword, &tests.MockApplicant.Role)
 	require.ErrorIs(t, err, service.ErrWrongIdentity)
 
 	// Authenticate using the user's ID

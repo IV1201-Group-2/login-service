@@ -8,6 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type testError struct{}
+
+func (t *testError) Error() string {
+	return ""
+}
+
 // Tests that service.Error behaves as expected
 func TestServiceErrors(t *testing.T) {
 	t.Parallel()
@@ -24,6 +30,7 @@ func TestServiceErrors(t *testing.T) {
 	require.ErrorIs(t, error1, service.ErrJWTError)
 	require.ErrorIs(t, error2, service.ErrJWTError)
 	require.NotErrorIs(t, error3, service.ErrJWTError)
+	require.NotErrorIs(t, error1, errors.New("test error 4"))
 
 	// errors.Unwrap should return a reference to the wrapped error
 	require.Equal(t, errors.Unwrap(error1), wrappedError1)
@@ -31,6 +38,9 @@ func TestServiceErrors(t *testing.T) {
 	require.Equal(t, errors.Unwrap(error1.Wrap(wrappedError3)), wrappedError3)
 
 	// errors.As should cast to service.Error correctly
-	var apiError *service.Error
-	require.ErrorAs(t, error1, &apiError)
+	var serviceError *service.Error
+	var genericError *testError
+
+	require.True(t, errors.As(error1, &serviceError))
+	require.False(t, errors.As(error1, &genericError))
 }

@@ -115,7 +115,6 @@ func ErrorHandler(e error, c echo.Context) {
 		userVisibleErr = apiErr
 	case errors.As(e, &serviceError):
 		logging.Errorf(c, "Error occurred in service layer: %v", e)
-		userVisibleErr = ErrUnknown.Wrap(e)
 	case errors.As(e, &databaseErr):
 		logging.Errorf(c, "Error occurred in database layer: %v", e)
 		userVisibleErr = ErrServiceUnavailable.Wrap(e)

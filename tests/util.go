@@ -71,16 +71,14 @@ func SetupEnvironment() (func() error, error) {
 	}, nil
 }
 
-// Sends a request to a mock server and returns the response.
-func Request(t *testing.T, path string, params map[string]any, headers map[string]string) *http.Response {
+// Sends a request to an existing server and returns the response.
+func CustomRequest(t *testing.T, srv *echo.Echo, path string, params map[string]any, headers map[string]string) *http.Response {
 	t.Helper()
-
-	var req *http.Request
 
 	json, err := json.Marshal(params)
 	require.NoError(t, err)
 
-	req = httptest.NewRequest(http.MethodPost, path, bytes.NewReader(json))
+	req := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(json))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 	for k, v := range headers {
@@ -88,11 +86,18 @@ func Request(t *testing.T, path string, params map[string]any, headers map[strin
 	}
 
 	rec := httptest.NewRecorder()
+	srv.ServeHTTP(rec, req)
+	return rec.Result()
+}
+
+// Sends a request to a mock server and returns the response.
+func Request(t *testing.T, path string, params map[string]any, headers map[string]string) *http.Response {
+	t.Helper()
 
 	srv, _ := api.NewServer(Database)
-	srv.ServeHTTP(rec, req)
+	defer srv.Close()
 
-	return rec.Result()
+	return CustomRequest(t, srv, path, params, headers)
 }
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyz")

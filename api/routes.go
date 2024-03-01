@@ -48,10 +48,13 @@ func Login(c echo.Context, userRepository *database.UserRepository, auth *echojw
 			return ErrMissingPassword.WithDetails(model.ResetTokenResponse{Token: token})
 		case errors.Is(err, service.ErrWrongIdentity):
 			logging.Errorf(c, "Unauthorized attempt: user '%s' not found", params.Identity)
+			return ErrWrongIdentity
 		case errors.Is(err, service.ErrWrongPassword):
 			logging.Errorf(c, "Unauthorized attempt: wrong password for user '%s'", params.Identity)
+			return ErrWrongIdentity
 		}
-		return ErrWrongIdentity
+
+		return err
 	}
 
 	// Create a new token valid for the auth expiry period
