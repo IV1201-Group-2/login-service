@@ -11,9 +11,9 @@ import (
 
 	"github.com/IV1201-Group-2/login-service/logging"
 	sq "github.com/Masterminds/squirrel"
-
 	// Imports Postgres driver.
 	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 )
 
 // Postgres uses $1, $2, etc for placeholders.
@@ -40,8 +40,10 @@ func Open(url string) (*sql.DB, error) {
 
 	// Periodic logging of database statistics
 	go func() {
-		for true {
-			logging.Debugf("Database statistics: in use=%d idle=%d", db.Stats().InUse, db.Stats().Idle)
+		for {
+			logging.Logf(logrus.DebugLevel,
+				"Database statistics: in use=%d idle=%d",
+				db.Stats().InUse, db.Stats().Idle)
 			time.Sleep(10 * time.Second)
 		}
 	}()
