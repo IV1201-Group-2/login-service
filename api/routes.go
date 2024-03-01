@@ -85,7 +85,9 @@ func PasswordReset(c echo.Context, userRepository *database.UserRepository, auth
 
 	claims, _ := token.Claims.(*model.UserClaims)
 	err := service.UpdatePassword(userRepository, *claims, params.Password)
-	if err != nil {
+	if errors.Is(err, service.ErrWrongUsage) {
+		return ErrTokenInvalid
+	} else if err != nil {
 		return err
 	}
 

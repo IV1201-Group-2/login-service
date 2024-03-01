@@ -153,5 +153,7 @@ ALTER TABLE ONLY person
 INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (0, 'Mock', 'Applicant', '200001011111', 'mockuser-applicant@example.com', '$2a$10$c4WCXRkTtYb3fJ7Wpnjok.nhrEcFyxqpJ/mjfAjBDzqW1IWT6EjVi', 2, '');
 -- Applicant without password (login: mockuser-applicant2@example.com)
 INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (1, 'Mock', 'Applicant 2', '200001012222', 'mockuser-applicant2@example.com', '', 2, '');
+-- Applicant without password (login: mockuser-applicant3@example.com)
+INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (2, 'Mock', 'Applicant 3', '200001013333', 'mockuser-applicant3@example.com', '', 2, '');
 -- Recruiter (login: mockuser_recruiter, password)
-INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (2, 'Mock', 'Recruiter', '200001013333', '', '$2a$10$c4WCXRkTtYb3fJ7Wpnjok.nhrEcFyxqpJ/mjfAjBDzqW1IWT6EjVi', 1, 'mockuser_recruiter');
+INSERT INTO person OVERRIDING SYSTEM VALUE VALUES (3, 'Mock', 'Recruiter', '200001014444', '', '$2a$10$c4WCXRkTtYb3fJ7Wpnjok.nhrEcFyxqpJ/mjfAjBDzqW1IWT6EjVi', 1, 'mockuser_recruiter');

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -26,7 +27,7 @@ import (
 )
 
 // The tests maintain a single connection to the database.
-var testDB *sql.DB
+var Database *sql.DB
 
 // If this is set to true, JSON blobs are sent to the server when a test request is executed.
 // If this is set to false, form data is sent to the server when a test request is executed.
@@ -55,7 +56,7 @@ func SetupEnvironment() (func() error, error) {
 	if err != nil {
 		return nil, err
 	}
-	testDB, err = database.Open(connStr)
+	Database, err = database.Open(connStr)
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +65,8 @@ func SetupEnvironment() (func() error, error) {
 	logging.Logger.SetOutput(io.Discard)
 
 	return func() error {
-		if testDB != nil {
-			testDB.Close()
+		if Database != nil {
+			Database.Close()
 		}
 		err := pgContainer.Terminate(context.Background())
 		if err != nil {
@@ -100,8 +101,20 @@ func Request(t *testing.T, path string, params map[string]any, headers map[strin
 
 	rec := httptest.NewRecorder()
 
-	srv, _ := api.NewServer(testDB)
+	srv, _ := api.NewServer(Database)
 	srv.ServeHTTP(rec, req)
 
 	return rec.Result()
+}
+
+var letters = []rune("abcdefghijklmnopqrstuvwxyz")
+
+// Generate a random string of a fixed length.
+func RandomStr(length int) string {
+	src := rand.New(rand.NewSource(time.Now().UnixMilli()))
+	str := make([]rune, length)
+	for i := 0; i < length; i++ {
+		str[i] = letters[src.Intn(len(letters))]
+	}
+	return string(str)
 }

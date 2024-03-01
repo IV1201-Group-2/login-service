@@ -57,7 +57,7 @@ func AuthenticateUser(repository *database.UserRepository, identity string, pass
 func UpdatePassword(repository *database.UserRepository, token model.UserClaims, password string) error {
 	// Check if user provided a reset token
 	if token.Usage != model.TokenUsageReset {
-		return ErrWrongIdentity
+		return ErrWrongUsage
 	}
 
 	hashed, err := HashPassword(password)

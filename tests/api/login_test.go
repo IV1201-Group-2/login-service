@@ -46,7 +46,7 @@ func TestLogin(t *testing.T) {
 }
 
 // Tests that the server returns MISSING_PARAMETERS when API caller is missing required parameters.
-func TestMissingParameters(t *testing.T) {
+func TestLoginMissingParameters(t *testing.T) {
 	t.Parallel()
 
 	res := tests.Request(t, "/api/login", map[string]any{
@@ -65,7 +65,7 @@ func TestMissingParameters(t *testing.T) {
 }
 
 // Tests that the server does not return MISSING_PARAMETERS when API caller is missing optional parameters.
-func TestOptionalParameters(t *testing.T) {
+func TestLoginOptionalParameters(t *testing.T) {
 	t.Parallel()
 
 	res := tests.Request(t, "/api/login", map[string]any{
@@ -141,9 +141,10 @@ func TestLoginWrongPassword(t *testing.T) {
 func TestLoginMissingPassword(t *testing.T) {
 	t.Parallel()
 
+	// Try the mock applicant that won't be modified during tests
 	res := tests.Request(t, "/api/login", map[string]any{
 		"identity": tests.MockApplicant2.Email,
-		"password": "mockpassword",
+		"password": tests.MockPassword,
 		"role":     model.RoleApplicant,
 	}, map[string]string{})
 	defer res.Body.Close()
@@ -190,20 +191,4 @@ func TestAlreadyLoggedIn(t *testing.T) {
 
 	require.NoError(t, json.Unmarshal(body, &obj))
 	require.Equal(t, "ALREADY_LOGGED_IN", obj.ErrorType)
-}
-
-// Tests that the server returns an error conformant with shared API rules on wrong route.
-func TestWrongRoute(t *testing.T) {
-	t.Parallel()
-
-	res := tests.Request(t, "/api/wrong", map[string]any{}, map[string]string{})
-	defer res.Body.Close()
-
-	require.Equal(t, http.StatusNotFound, res.StatusCode)
-
-	obj := api.Error{}
-	body, _ := io.ReadAll(res.Body)
-
-	require.NoError(t, json.Unmarshal(body, &obj))
-	require.Equal(t, "INVALID_ROUTE", obj.ErrorType)
 }

@@ -45,8 +45,12 @@ var (
 	ErrWrongIdentity = &Error{"wrong identity", nil}
 	// ErrWrongPassword indicates that authentication failed because the wrong password was provided.
 	ErrWrongPassword = &Error{"wrong password", nil}
+
 	// ErrMissingPassword indicates that authentication failed because the user has no password in the database.
 	ErrMissingPassword = &Error{"missing password", nil}
+	// ErrWrongUsage indicates that password update failed because the token is intended for login.
+	ErrWrongUsage = &Error{"wrong token usage", nil}
+
 	// ErrBcryptError indicates that password update failed because Bcrypt returned an error.
 	ErrBcryptError = &Error{"bcrypt error", nil}
 	// ErrJWTError indicates that authentication failed because golang-jwt returned an error.
