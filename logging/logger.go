@@ -15,7 +15,7 @@ const TimestampFormat = "2006-01-02 15:04"
 // Logger is a Logrus instance with a customized configuration.
 var logger *logrus.Logger
 
-func init() {
+func initLogger() {
 	out := os.Stdout
 	if filename, ok := os.LookupEnv("LOG_FILE"); ok {
 		out, _ = os.Open(filename)
@@ -39,32 +39,82 @@ func init() {
 	}
 }
 
+// Log a debug message that occurred in the application.
+func Debugf(format string, args ...any) {
+	if logger == nil {
+		initLogger()
+	}
+	logger.Debugf(fmt.Sprintf("[SERVICE] %s\n", format), args...)
+}
+
 // Log an informational message that occurred in the application.
 func Infof(format string, args ...any) {
-	logger.Infof(fmt.Sprintf("[Application] %s\n", format), args...)
+	if logger == nil {
+		initLogger()
+	}
+	logger.Infof(fmt.Sprintf("[SERVICE] %s\n", format), args...)
 }
 
 // Log a warning message that occurred in the application.
 func Warnf(format string, args ...any) {
-	logger.Infof(fmt.Sprintf("[Application] %s\n", format), args...)
+	if logger == nil {
+		initLogger()
+	}
+	logger.Infof(fmt.Sprintf("[SERVICE] %s\n", format), args...)
 }
 
 // Log an error that occured in the application.
 func Errorf(format string, args ...any) {
-	logger.Errorf(fmt.Sprintf("[Application] %s\n", format), args...)
+	if logger == nil {
+		initLogger()
+	}
+	logger.Errorf(fmt.Sprintf("[SERVICE] %s\n", format), args...)
+}
+
+// Log an error that occured in the application and exit.
+func Fatalf(format string, args ...any) {
+	if logger == nil {
+		initLogger()
+	}
+	logger.Fatalf(fmt.Sprintf("[SERVICE] %s\n", format), args...)
+}
+
+// Log a debug message that occurred in a handler.
+func Debugcf(c echo.Context, format string, args ...any) {
+	if logger == nil {
+		initLogger()
+	}
+	logger.Debugf(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
 }
 
 // Log an informational message that occurred in a handler.
-func Infohf(format string, args ...any) {
-	logger.Infof(fmt.Sprintf("[%s] %s\n", format), args...)
+func Infocf(c echo.Context, format string, args ...any) {
+	if logger == nil {
+		initLogger()
+	}
+	logger.Infof(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
 }
 
 // Log a warning message that occurred in a handler.
-func Warnhf(c echo.Context, format string, args ...any) {
+func Warncf(c echo.Context, format string, args ...any) {
+	if logger == nil {
+		initLogger()
+	}
 	logger.Infof(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
 }
 
 // Log an error that occurred in a handler.
-func Errorhf(c echo.Context, format string, args ...any) {
+func Errorcf(c echo.Context, format string, args ...any) {
+	if logger == nil {
+		initLogger()
+	}
 	logger.Errorf(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
+}
+
+// Log an error that occurred in a handler and exit.
+func Fatalcf(c echo.Context, format string, args ...any) {
+	if logger == nil {
+		initLogger()
+	}
+	logger.Fatalf(fmt.Sprintf("[%s] %s\n", c.RealIP(), format), args...)
 }

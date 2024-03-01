@@ -11,14 +11,14 @@ import (
 func main() {
 	db, err := database.Open(os.Getenv("DATABASE_URL"))
 	if err != nil {
-		logging.Logger.Fatalf("Database init error: %v", err)
+		logging.Fatalf("Database init error: %v", err)
 	}
 	defer db.Close()
 
 	srv, err := api.NewServer(db)
 	if err != nil {
-		logging.Logger.Fatalf("Server init error: %v", err)
+		logging.Fatalf("Server init error: %v", err)
 	}
 
-	logging.Logger.Fatal(srv.Start(":" + os.Getenv("PORT")))
+	logging.Fatalf("%v", srv.Start(":"+os.Getenv("PORT")))
 }

@@ -43,14 +43,14 @@ func Login(c echo.Context, userRepository *database.UserRepository, auth *echojw
 			if err != nil {
 				return err
 			}
-			logging.Warnf(c, "Login failed: user has no password in db")
-			logging.Infof(c, "Handed out reset token that expires at %s", expiry.Format(logging.TimestampFormat))
+			logging.Warncf(c, "Login failed: user has no password in db")
+			logging.Infocf(c, "Handed out reset token that expires at %s", expiry.Format(logging.TimestampFormat))
 			return ErrMissingPassword.WithDetails(model.ResetTokenResponse{Token: token})
 		case errors.Is(err, service.ErrWrongIdentity):
-			logging.Warnf(c, "Unauthorized attempt: user '%s' not found", params.Identity)
+			logging.Warncf(c, "Unauthorized attempt: user '%s' not found", params.Identity)
 			return ErrWrongIdentity
 		case errors.Is(err, service.ErrWrongPassword):
-			logging.Warnf(c, "Unauthorized attempt: wrong password for user '%s'", params.Identity)
+			logging.Warncf(c, "Unauthorized attempt: wrong password for user '%s'", params.Identity)
 			return ErrWrongIdentity
 		}
 
@@ -62,7 +62,7 @@ func Login(c echo.Context, userRepository *database.UserRepository, auth *echojw
 	if err != nil {
 		return err
 	}
-	logging.Infof(c, "Login successful: token expires at %s", expiry.Format(logging.TimestampFormat))
+	logging.Infocf(c, "Login successful: token expires at %s", expiry.Format(logging.TimestampFormat))
 
 	return c.JSON(http.StatusOK, model.LoginTokenResponse{Token: token})
 }
@@ -76,7 +76,7 @@ func PasswordReset(c echo.Context, userRepository *database.UserRepository, auth
 	// Check if user provided a token
 	token, ok := c.Get("user").(*jwt.Token)
 	if !ok {
-		logging.Warnf(c, "Unauthorized attempt: user has no reset token")
+		logging.Warncf(c, "Unauthorized attempt: user has no reset token")
 		return ErrTokenNotProvided
 	}
 
@@ -95,9 +95,9 @@ func PasswordReset(c echo.Context, userRepository *database.UserRepository, auth
 	}
 
 	if claims.User.Username != "" {
-		logging.Infof(c, "User '%s' has reset password", claims.User.Username)
+		logging.Infocf(c, "User '%s' has reset password", claims.User.Username)
 	} else if claims.User.Email != "" {
-		logging.Infof(c, "User '%s' has reset password", claims.User.Email)
+		logging.Infocf(c, "User '%s' has reset password", claims.User.Email)
 	}
 
 	// Create a new token valid for the auth expiry period
@@ -105,7 +105,7 @@ func PasswordReset(c echo.Context, userRepository *database.UserRepository, auth
 	if err != nil {
 		return err
 	}
-	logging.Infof(c, "Login successful: token expires at %s", expiry.Format(logging.TimestampFormat))
+	logging.Infocf(c, "Login successful: token expires at %s", expiry.Format(logging.TimestampFormat))
 
 	return c.JSON(http.StatusOK, model.LoginTokenResponse{Token: newToken})
 }

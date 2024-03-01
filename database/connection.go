@@ -7,8 +7,11 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/IV1201-Group-2/login-service/logging"
 	sq "github.com/Masterminds/squirrel"
+
 	// Imports Postgres driver.
 	_ "github.com/lib/pq"
 )
@@ -34,6 +37,14 @@ func Open(url string) (*sql.DB, error) {
 	if err = db.Ping(); err != nil {
 		return nil, ErrConnectionFailed.Wrap(err)
 	}
+
+	// Periodic logging of database statistics
+	go func() {
+		for true {
+			logging.Debugf("Database statistics: in use=%d idle=%d", db.Stats().InUse, db.Stats().Idle)
+			time.Sleep(10 * time.Second)
+		}
+	}()
 
 	return db, nil
 }

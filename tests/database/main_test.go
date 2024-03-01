@@ -11,13 +11,13 @@ import (
 func TestMain(m *testing.M) {
 	cleanup, err := tests.SetupEnvironment()
 	if err != nil {
-		logging.Logger.Errorf("Failed to set up test environment: %v", err)
+		logging.Errorf("Failed to set up test environment: %v", err)
 		os.Exit(1)
 	}
 	exitCode := m.Run()
 	err = cleanup()
 	if err != nil {
-		logging.Logger.Errorf("Failed to tear down test environment: %v", err)
+		logging.Errorf("Failed to tear down test environment: %v", err)
 		os.Exit(1)
 	}
 	os.Exit(exitCode)
