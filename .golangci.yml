@@ -16,21 +16,26 @@ linters:
   disable:
     - cyclop
     - depguard
+    - errcheck
     - exhaustruct
     - gochecknoglobals
+    - gochecknoinits
+    - goconst
     - godox
+    - goerr113
     - gofumpt
+    # Conflicts with gci
+    - goimports
+    - gomnd
     - ireturn
     - lll
     - nlreturn
-    - tagliatelle
     - varnamelen
     - wrapcheck
     - wsl
 
-# linters-settings:
-#   tagliatelle:
-#     case:
-#       use-field-name: true
-#       rules:
-#         json: snake
+linters-settings:
+  tagliatelle:
+    case:
+      rules:
+        json: snake

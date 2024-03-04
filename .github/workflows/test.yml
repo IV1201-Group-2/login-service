@@ -14,16 +14,27 @@ jobs:
     name: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       # setup-go will automatically cache go.sum
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: "1.21.x"
+          go-version: "1.22.x"
       - name: Install dependencies
         run: go get .
       - name: Build
         run: go build -v ./...
-      - name: Run all tests
+      - name: Run tests and build profile
         run: |
-          TEST_JSON=0 go test ./... -count=1
-          TEST_JSON=1 go test ./... -count=1
+          mkdir -p output
+          go test -coverpkg='./...' -coverprofile=output/profile.cov './tests/...'
+      - name: Coverage for all functions
+        run: |
+          go tool cover -func output/profile.cov -o output/functions.txt
+          go tool cover -html output/profile.cov -o output/coverage.html
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: |
+            output/functions.txt
+            output/coverage.html

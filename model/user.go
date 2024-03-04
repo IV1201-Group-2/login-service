@@ -1,10 +1,5 @@
 package model
 
-import (
-	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
-)
-
 // Represents the routes that a user is allowed to access.
 type Role int
 
@@ -29,41 +24,4 @@ type User struct {
 
 	// Bcrypt-encoded password
 	Password string `json:"-"` // Omit from JSON response
-}
-
-const (
-	// This is a login token.
-	TokenUsageLogin = "login"
-	// This is a reset token.
-	TokenUsageReset = "reset"
-)
-
-// Claims that are specific to this microservice.
-type CustomClaims struct {
-	Usage string `json:"usage"`
-}
-
-// Custom claims that can be read by the client and other microservices.
-type CustomUserClaims struct {
-	CustomClaims
-	User
-	jwt.RegisteredClaims
-}
-
-// Default cost of Spring BCryptPasswordEncoder.
-const passwordCost = 10
-
-// Encodes a password for insertion into the database.
-func HashPassword(plaintext string) (string, error) {
-	result, err := bcrypt.GenerateFromPassword([]byte(plaintext), passwordCost)
-	if err != nil {
-		return "", err
-	}
-	return string(result), nil
-}
-
-// Compares a plaintext password with a hashed password stored in the database.
-func ComparePassword(plaintext string, hashed string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plaintext))
-	return err == nil
 }
